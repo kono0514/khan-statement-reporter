@@ -1,0 +1,26 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply select-none;
+    }
+}
+
+@layer components {
+    .dropdown-item {
+        @apply flex px-2 py-1 items-center cursor-pointer text-gray-800 font-medium text-sm rounded whitespace-no-wrap w-full;
+        .dark & {
+            @apply text-gray-300;
+        }
+    }
+    .dropdown-item:hover {
+        @apply bg-gray-200;
+        .dark & {
+            @apply bg-gray-700;
+        }
+    }
+}
