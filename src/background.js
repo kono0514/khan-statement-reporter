@@ -7,9 +7,11 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import pie from 'puppeteer-in-electron';
 import { AppMain } from './app';
 import updater from './updater';
+const windowStateKeeper = require('electron-window-state');
 
 (async () => {
   const isDevelopment = process.env.NODE_ENV !== 'production'
+
   await pie.initialize(app);
 
   // Keep a global reference of the window object, if you don't, the window will
@@ -22,10 +24,17 @@ import updater from './updater';
   ])
 
   function createWindow() {
+    let mainWindowState = windowStateKeeper({
+      defaultWidth: 400,
+      defaultHeight: 540,
+    });
+
     // Create the browser window.
     win = new BrowserWindow({
-      width: 400,
-      height: 540,
+      width: mainWindowState.width,
+      height: mainWindowState.height,
+      x: mainWindowState.x,
+      y: mainWindowState.y,
       webPreferences: {
         // Use pluginOptions.nodeIntegration, leave this alone
         // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -33,8 +42,10 @@ import updater from './updater';
         enableRemoteModule: true,
       },
       show: false,
-      backgroundColor: '#000000'
+      backgroundColor: '#1a202c'
     })
+
+    mainWindowState.manage(win);
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
       // Load the url of the dev server if in development mode
