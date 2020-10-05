@@ -128,7 +128,8 @@ export class AppMain {
         await axios.post(
           '/api/user/create_donations',
           {
-            donation: newDonations
+            donation: newDonations,
+            account_number: validated['accountNumber'],
           },
           {
             baseURL: process.env.VUE_APP_URL,
