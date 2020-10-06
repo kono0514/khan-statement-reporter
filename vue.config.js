@@ -9,9 +9,14 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: true,
       builderOptions: {
-        publish: ['github'],
+        publish: [{
+          provider: 'github',
+          releaseType: 'release'
+        }],
         appId: 'com.kono.khan_statement_reporter',
-        productName: 'Khan Statement Reporter'
+        productName: 'Khan Statement Reporter',
+        artifactName: '${productName} Setup ${version}.${ext}',
+        afterAllArtifactBuild: './after_build.js'
       },
       chainWebpackRendererProcess: (config) => {
         config.plugin('html').tap((args) => {
