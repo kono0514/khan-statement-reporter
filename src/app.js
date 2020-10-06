@@ -10,7 +10,7 @@ export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
-    this.startTime = new Date();
+    this.lastSuccessfulCheckTime = this.now();
     this.lastSentStatement = null;
     this.listen()
     this.init()
@@ -39,6 +39,13 @@ export class AppMain {
         }
       },
     );
+  }
+
+  now() {
+    // Round down by 1 minute to allow for some leeway
+    let now = new Date();
+    const ms = 1000 * 60 * 1; // 1 minute
+    return new Date(Math.round(now.getTime() / ms) * ms);
   }
 
   async checkContinously() {
@@ -111,9 +118,10 @@ export class AppMain {
       console.log('Statements result');
       console.log(statements);
       for (const statement of statements) {
-        if (this.startTime > statement.timestamp) continue;
+        if (this.lastSuccessfulCheckTime > statement.timestamp) continue;
         newDonations.push(statement);
       }
+      this.lastSuccessfulCheckTime = this.now();
     } catch (error) {
       console.log('Statement result error', error);
       if (error !== 'SOFT_ERR_STATEMENT_DOWNLOAD') {
