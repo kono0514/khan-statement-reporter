@@ -122,7 +122,7 @@ async function fetchStatement(username, password, accountNumber) {
     });
 
     // Captcha required on initial page load
-    if (!body.includes('pnlCaptcha')) {
+    if (body.includes('pnlCaptcha')) {
       window.show();
       // window.flashFrame(true);
       grabAttention(window, 'Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
