@@ -42,10 +42,10 @@ export class AppMain {
   }
 
   now() {
-    // Round down by 1 minute to allow for some leeway
+    // Substract 1 minute to allow for some leeway
     let now = new Date();
     const ms = 1000 * 60 * 1; // 1 minute
-    return new Date(Math.round(now.getTime() / ms) * ms);
+    return new Date(now.getTime() - ms);
   }
 
   async checkContinously() {
