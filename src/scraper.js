@@ -8,7 +8,7 @@ const { dialog } = require('electron');
 
 async function _getTodaysIncomeStatement(page, accountNumber) {
   const today = (new Date()).toISOString().substring(0, 10).replace(/-/g, '.');
-  const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=2020.09.01&ED=${today}`;
+  const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=${today}&ED=${today}`;
   await page.goto(statementPageUrl);
 
   const rows = await page.$$eval('#cphMain_ctl00_gridList tbody tr', rows => {
