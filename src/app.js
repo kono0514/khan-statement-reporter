@@ -132,8 +132,9 @@ export class AppMain {
     }
 
     try {
+      let insertedCount = 0;
       if (newDonations.length > 0) {
-        await axios.post(
+        const response = await axios.post(
           '/api/user/create_donations',
           {
             donation: newDonations.map(d => {
@@ -151,8 +152,11 @@ export class AppMain {
             }
           }
         );
+        if (response.data['inserted']) {
+          insertedCount = response.data['inserted'];
+        }
       }
-      store.dispatch('appendLog', `${checkStartTime}: Шинэ орлого -> ${newDonations.length}`);
+      store.dispatch('appendLog', `${checkStartTime}: Шинэ орлого -> ${insertedCount}`);
     } catch (error) {
       if (error.response.status === 401) {
         this.win.webContents.send('logout');
