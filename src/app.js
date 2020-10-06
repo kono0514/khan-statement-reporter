@@ -128,7 +128,12 @@ export class AppMain {
         await axios.post(
           '/api/user/create_donations',
           {
-            donation: newDonations,
+            donation: newDonations.map(d => {
+              return {
+                ...d,
+                timestamp: d.timestamp.toISOString().slice(0, 19).replace('T', ' ')
+              }
+            }),
             account_number: validated['accountNumber'],
           },
           {
