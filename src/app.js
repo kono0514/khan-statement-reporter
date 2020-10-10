@@ -4,19 +4,20 @@ import store from './store';
 import ElectronStore from 'electron-store';
 import constants from './constants';
 import axios from 'axios';
-import { fetchStatement } from './scraper';
+import { Scraper } from './scraper';
 
 export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
     this.lastSuccessfulCheckTime = this.now();
-    this.lastSentStatement = null;
+    this.scraper = new Scraper();
     this.listen()
     this.init()
   }
 
-  init() {
+  async init() {
+    await this.scraper.init();
     this.checkContinously();
   }
 
@@ -50,7 +51,7 @@ export class AppMain {
 
   async checkContinously() {
     await this.check();
-    setTimeout(this.checkContinously.bind(this), 30000);
+    setTimeout(this.checkContinously.bind(this), 10000);
   }
 
   async validate() {
@@ -88,6 +89,8 @@ export class AppMain {
     } catch (error) {
       if (error.response.status === 401) {
         this.win.webContents.send('logout');
+      } else if (error.response.status === 403) {
+        store.dispatch('stop', error.response.data.message);
       } else {
         console.error(error);
         store.dispatch('stop', 'API failure');
@@ -114,7 +117,7 @@ export class AppMain {
     // Хуулга татах
     const newDonations = [];
     try {
-      const statements = await fetchStatement(validated['username'], validated['password'], validated['accountNumber']);
+      const statements = await this.scraper.fetchStatement(validated['username'], validated['password'], validated['accountNumber']);
       console.log('Statements result');
       console.log(statements);
       for (const statement of statements) {
@@ -155,6 +158,9 @@ export class AppMain {
     } catch (error) {
       if (error.response.status === 401) {
         this.win.webContents.send('logout');
+      } else if (error.response.status === 403) {
+        store.dispatch('stop', error.response.data.message);
+        store.dispatch('appendLog', `${checkStartTime}: ${error.response.data.message}`);
       } else {
         console.error(error);
         store.dispatch('stop', 'API failure');
