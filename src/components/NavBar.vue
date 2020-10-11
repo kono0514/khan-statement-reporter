@@ -2,7 +2,8 @@
   <header class="z-30 w-full bg-white dark:bg-gray-800 px-4 py-2 shadow">
     <div class="mx-auto flex justify-between items-center">
       <div class="flex items-center">
-        <span class="flex items-center cursor-pointer dark:text-gray-100">
+        <img src="@/assets/logo.png" alt="" width="36" class="mr-2">
+        <span class="flex items-center dark:text-gray-100">
           Khan Statement Reporter
         </span>
       </div>
