@@ -5,13 +5,16 @@ import ElectronStore from 'electron-store';
 import constants from './constants';
 import axios from 'axios';
 import { Scraper } from './scraper';
+const log = require('electron-log');
+
+console.log = log.log;
 
 export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
     this.lastSuccessfulCheckTime = this.now();
-    this.scraper = new Scraper();
+    this.scraper = new Scraper(this.win);
     this.listen()
     this.init()
   }
@@ -118,7 +121,6 @@ export class AppMain {
     const newDonations = [];
     try {
       const statements = await this.scraper.fetchStatement(validated['username'], validated['password'], validated['accountNumber']);
-      console.log('Statements result');
       console.log(statements);
       for (const statement of statements) {
         if (this.lastSuccessfulCheckTime > statement.timestamp) continue;

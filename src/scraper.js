@@ -9,33 +9,40 @@ import { exception } from 'console';
 const log = require('electron-log');
 const { dialog } = require('electron');
 
+console.log = log.log;
+
 export class Scraper {
-  constructor() {
+  constructor(win) {
     this.browser = null;
     this.window = null;
+    this.page = null;
+    this.client = null;
+    this.parentWindow = win;
   }
 
   async init() {
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    let isDevelopment = process.env.NODE_ENV !== 'production';
+    // isDevelopment = true;
     this.browser = await pie.connect(app, puppeteer);
     let options = {
       show: isDevelopment,
       frame: isDevelopment,
       closable: isDevelopment,
     };
-    this.window = new BrowserWindow({ title: 'Scraper DO NOT CLOSE', ...options });
+    this.window = new BrowserWindow({ title: 'Scraper DO NOT CLOSE', ...options, parent: this.parentWindow });
     if (isDevelopment) {
       this.window.webContents.openDevTools();
     }
+    this.page = await pie.getPage(this.browser, this.window);
   }
 
-  async fetchStatement(username, password, accountNumber) {  
-    const page = await pie.getPage(this.browser, this.window);
-
+  async fetchStatement(username, password, accountNumber) {
+    this.page.removeAllListeners();
+    await this.page.setRequestInterception(false);
     /// Try to download in case the previous session is still alive
     try {
-      await page.goto('about:blank');
-      const statements = await this._getTodaysIncomeStatement(page, accountNumber);
+      await this.page.goto('about:blank');
+      const statements = await this._getTodaysIncomeStatement(accountNumber);
       console.log('Statement downloaded. Successfully used previous session without logging in...');
       return statements;
     } catch (error) {
@@ -45,55 +52,70 @@ export class Scraper {
     /// Logged out. Login again
     console.log('Logging in...');
     const LOGIN_PAGE_URL = 'https://e.khanbank.com/pageLoginMini';
-    await page.goto(LOGIN_PAGE_URL);
-    page.$eval('#txtCustNo', (el, value) => el.value = value, username);
-    page.$eval('#txtPassword', (el, value) => el.value = value, password);
+    await this.page.goto(LOGIN_PAGE_URL);
+    this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
+    this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
 
-    const body = await page.evaluate(() => document.querySelector('body').innerHTML);
+    const body = await this.page.evaluate(() => document.querySelector('body').innerHTML);
 
     // Captcha required on initial page load
     if (body.includes('pnlCaptcha')) {
       this._grabAttention('Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
     } else {
-      await page.click("input[type=submit]");
+      await this.page.click("input[type=submit]");
     }
+
+    if (this.client !== null) {
+      await this.client.detach();
+    }
+    this.client = await this.page.target().createCDPSession();
+    await this.client.send('Network.enable');
 
     // Capture additional headers (set-cookie)
     const responseCookieHeaders = {};
-    const client = await page.target().createCDPSession();
-    await client.send('Network.enable');
-    client.on('Network.responseReceivedExtraInfo', (response) => {
+    this.client.on('Network.responseReceivedExtraInfo', (response) => {
       if (response && response.headers) {
         const cookieHeader = response.headers[Object.keys(response.headers).find(key => key.toLowerCase() === 'set-cookie')];
         if (cookieHeader) {
           responseCookieHeaders[response.requestId] = cookieHeader;
         }
       }
+    });    
+
+    // Disable successful login form redirection
+    this.page.on('request', request => {
+      if (request.isNavigationRequest() && request.frame() === this.page.mainFrame() && request.url().startsWith('https://e.khanbank.com/pageMain?content=ucMain_Welcome')) {
+        request.abort('aborted');
+      } else {
+        request.continue();
+      }
     });
-    
+    await this.page.setRequestInterception(true);
+
     return new Promise((resolve, reject) => {
-      page.on('response', async (response) => {
+      this.page.on('requestfinished', async (request) => {
+        const response = request.response();
         // Login ajax response
-        if (response.url().startsWith(LOGIN_PAGE_URL) && response.request().method() === 'POST') {
+        if (response.url().startsWith(LOGIN_PAGE_URL) && request.method() === 'POST') {
           console.log('Processing login ajax response...');
           const data = await response.text();
   
-          const cookies = responseCookieHeaders[response.request()._requestId];
+          const cookies = responseCookieHeaders[request._requestId];
           // Successfully logged in
           if (cookies && cookies.includes('ASPXAUTH')) {
             console.log('Logged in successfully...');
             // Stop further redirections. We don't care about them
-            await page.goto('about:blank');
+            await this.page.goto('about:blank');
 
             try {
-              const statements = await this._getTodaysIncomeStatement(page, accountNumber);
+              const statements = await this._getTodaysIncomeStatement(accountNumber);
               console.log('Statement downloaded...');
               resolve(statements);
             } catch (error) {
               console.log(error);
               reject('SOFT_ERR_STATEMENT_DOWNLOAD');
             }
-            this.window.hide();
+            // this.window.hide();
             return;
           }
   
@@ -108,17 +130,13 @@ export class Scraper {
           if (errorMatch != null && errorMatch.length >= 1) {
             console.log('Login failed with error');
             reject(errorMatch[1]);
-            this.window.hide();
+            // this.window.hide();
             return;
           }
   
           // Unknown error
           this._grabAttention('Unknown error???');
         }
-      });
-  
-      this.window.on('closed', () => {
-        reject('Closed');
       });
     });
   }
@@ -133,17 +151,17 @@ export class Scraper {
     });
   }
 
-  async _getTodaysIncomeStatement(page, accountNumber) {
+  async _getTodaysIncomeStatement(accountNumber) {
     const today = (new Date()).toISOString().substring(0, 10).replace(/-/g, '.');
     const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=${today}&ED=${today}`;
-    await page.goto(statementPageUrl);
+    await this.page.goto(statementPageUrl);
 
     // Logged out
-    if (page.url().includes('pageLoginMini')) {
+    if (this.page.url().includes('pageLoginMini')) {
       throw 'Logged out';
     }
 
-    const rows = await page.$$eval('#cphMain_ctl00_gridList tbody tr', rows => {
+    const rows = await this.page.$$eval('#cphMain_ctl00_gridList tbody tr', rows => {
       return Array.from(rows, row => {
         return Array.from(row.querySelectorAll('td'), td => td.innerText);
       });
