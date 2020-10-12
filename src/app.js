@@ -5,6 +5,8 @@ import ElectronStore from 'electron-store';
 import constants from './constants';
 import axios from 'axios';
 import { Scraper } from './scraper';
+import puppeteer from 'puppeteer-core';
+import { RetryableError } from './retryable_error';
 const log = require('electron-log');
 
 console.log = log.log;
@@ -121,18 +123,20 @@ export class AppMain {
     const newDonations = [];
     try {
       const statements = await this.scraper.fetchStatement(validated['username'], validated['password'], validated['accountNumber']);
-      console.log(statements);
       for (const statement of statements) {
         if (this.lastSuccessfulCheckTime > statement.timestamp) continue;
         newDonations.push(statement);
       }
       this.lastSuccessfulCheckTime = this.now();
+      store.dispatch('resetScraperFailCount');
     } catch (error) {
-      console.log('Statement result error', error);
-      if (error !== 'SOFT_ERR_STATEMENT_DOWNLOAD') {
+      console.error('Statement result error', error);
+      if (error instanceof puppeteer.errors.TimeoutError || error instanceof RetryableError) {
+        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
+        store.dispatch('incrementScraperFailCount');
+      } else {
         store.dispatch('stop', `Khanbank: ${error}`);
       }
-      store.dispatch('appendLog', `${checkStartTime}: Хуулга алдаа!`);
       return;
     }
 
@@ -156,17 +160,17 @@ export class AppMain {
           insertedCount = response.data['inserted'];
         }
       }
-      store.dispatch('appendLog', `${checkStartTime}: Шинэ орлого -> ${insertedCount}`);
+      store.dispatch('resetApiFailCount');
+      store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
     } catch (error) {
       if (error.response.status === 401) {
         this.win.webContents.send('logout');
-      } else if (error.response.status === 403) {
-        store.dispatch('stop', error.response.data.message);
-        store.dispatch('appendLog', `${checkStartTime}: ${error.response.data.message}`);
+        store.dispatch('stop');
       } else {
         console.error(error);
-        store.dispatch('stop', 'API failure');
-        store.dispatch('appendLog', `${checkStartTime}: API failure`);
+        store.dispatch('stop', error.response.data.message || 'API failure');
+        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.response.data.message || 'API failure' });
+        store.dispatch('incrementApiFailCount');
       }
     }
   }

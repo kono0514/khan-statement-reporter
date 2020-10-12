@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { exception } from 'console';
 const log = require('electron-log');
 const { dialog } = require('electron');
+import { RetryableError } from './retryable_error';
 
 console.log = log.log;
 
@@ -22,7 +23,7 @@ export class Scraper {
 
   async init() {
     let isDevelopment = process.env.NODE_ENV !== 'production';
-    // isDevelopment = true;
+    isDevelopment = false;
     this.browser = await pie.connect(app, puppeteer);
     let options = {
       show: isDevelopment,
@@ -34,11 +35,14 @@ export class Scraper {
       this.window.webContents.openDevTools();
     }
     this.page = await pie.getPage(this.browser, this.window);
+    this.page.setDefaultNavigationTimeout(15000);
   }
 
   async fetchStatement(username, password, accountNumber) {
+    console.log('fetchStatement');
     this.page.removeAllListeners();
     await this.page.setRequestInterception(false);
+
     /// Try to download in case the previous session is still alive
     try {
       await this.page.goto('about:blank');
@@ -46,7 +50,7 @@ export class Scraper {
       console.log('Statement downloaded. Successfully used previous session without logging in...');
       return statements;
     } catch (error) {
-      console.log(error);
+      console.error('Statement download re-use session error', error);
     }
 
     /// Logged out. Login again
@@ -62,7 +66,13 @@ export class Scraper {
     if (body.includes('pnlCaptcha')) {
       this._grabAttention('Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
     } else {
-      await this.page.click("input[type=submit]");
+      try {
+        await this.page.click("input[type=submit]");
+      } catch (error) {
+        if (error.includes('No node found for selector')) {
+          throw new RetryableError('Couldn\'t find the submit button');
+        }
+      }
     }
 
     if (this.client !== null) {
@@ -104,16 +114,16 @@ export class Scraper {
           // Successfully logged in
           if (cookies && cookies.includes('ASPXAUTH')) {
             console.log('Logged in successfully...');
-            // Stop further redirections. We don't care about them
-            await this.page.goto('about:blank');
 
             try {
+              // Stop further redirections. We don't care about them
+              await this.page.goto('about:blank');
               const statements = await this._getTodaysIncomeStatement(accountNumber);
               console.log('Statement downloaded...');
               resolve(statements);
             } catch (error) {
-              console.log(error);
-              reject('SOFT_ERR_STATEMENT_DOWNLOAD');
+              console.error('Statement download error', error);
+              reject(new RetryableError(error.message));
             }
             // this.window.hide();
             return;
@@ -128,8 +138,8 @@ export class Scraper {
           // Error message
           const errorMatch = /Info1_warningMsg1".*?>(.*?)</gmsi.exec(data);
           if (errorMatch != null && errorMatch.length >= 1) {
-            console.log('Login failed with error');
-            reject(errorMatch[1]);
+            console.error('Login failed with error', errorMatch[1]);
+            reject(new Error(errorMatch[1]));
             // this.window.hide();
             return;
           }
@@ -142,7 +152,7 @@ export class Scraper {
   }
 
   _grabAttention(message) {
-    console.log(message);
+    console.warn(message);
     this.window.show();
     dialog.showMessageBox(this.window, {
       type: 'warning',
@@ -158,7 +168,7 @@ export class Scraper {
 
     // Logged out
     if (this.page.url().includes('pageLoginMini')) {
-      throw 'Logged out';
+      throw new Error('Logged out');
     }
 
     const rows = await this.page.$$eval('#cphMain_ctl00_gridList tbody tr', rows => {
