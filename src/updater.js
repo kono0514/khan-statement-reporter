@@ -18,7 +18,7 @@ export default function(win) {
     win.webContents.send('update', `Update error. ${err}`);
   });
   autoUpdater.on('download-progress', (progressObj) => {
-    win.webContents.send('update', `Downloading... ${progressObj.percent}%`);
+    win.webContents.send('update', `Downloading... ${progressObj.percent.toFixed(2)}%`);
   });
   autoUpdater.on('update-downloaded', () => {
     win.webContents.send('update', 'Update downloaded. Restart now to install it.');
