@@ -9,7 +9,7 @@ import puppeteer from 'puppeteer-core';
 import { RetryableError } from './retryable_error';
 const log = require('electron-log');
 
-console.log = log.log;
+Object.assign(console, log.functions);
 
 export class AppMain {
   constructor(win) {

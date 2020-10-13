@@ -10,7 +10,7 @@ const log = require('electron-log');
 const { dialog } = require('electron');
 import { RetryableError } from './retryable_error';
 
-console.log = log.log;
+Object.assign(console, log.functions);
 
 export class Scraper {
   constructor(win) {
@@ -23,7 +23,6 @@ export class Scraper {
 
   async init() {
     let isDevelopment = process.env.NODE_ENV !== 'production';
-    isDevelopment = false;
     this.browser = await pie.connect(app, puppeteer);
     let options = {
       show: isDevelopment,
