@@ -57,29 +57,41 @@ export class Scraper {
     console.log('Logging in...');
     const LOGIN_PAGE_URL = 'https://e.khanbank.com/pageLoginMini';
     await this.page.goto(LOGIN_PAGE_URL);
+    console.log('Login page loaded');
     this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
     this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
 
     const body = await this.page.evaluate(() => document.querySelector('body').innerHTML);
 
+    console.log('Body evaluated');
+
     // Captcha required on initial page load
     if (body.includes('pnlCaptcha')) {
+      console.log('captcha');
       this._grabAttention('Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
     } else {
       try {
-        await this.page.click("input[type=submit]");
+        await new Promise(r => setTimeout(r, 1000));
+        await this.page.evaluate((button) => {
+          document.querySelector(button).click();
+        }, 'input[type=submit]');
+        console.log('clicked');
       } catch (error) {
         if (error.includes('No node found for selector')) {
           throw new RetryableError('Couldn\'t find the submit button');
+        } else {
+          throw error;
         }
       }
     }
 
+    console.log('detach');
     if (this.client !== null) {
       await this.client.detach();
     }
     this.client = await this.page.target().createCDPSession();
     await this.client.send('Network.enable');
+    console.log('Enable');
 
     // Capture additional headers (set-cookie)
     const responseCookieHeaders = {};
@@ -95,14 +107,18 @@ export class Scraper {
     // Disable successful login form redirection
     this.page.on('request', request => {
       if (request.isNavigationRequest() && request.frame() === this.page.mainFrame() && request.url().startsWith('https://e.khanbank.com/pageMain?content=ucMain_Welcome')) {
+        console.log('aborted');
         request.abort('aborted');
       } else {
         request.continue();
       }
     });
+    console.log('reqinter');
     await this.page.setRequestInterception(true);
+    console.log('done');
 
     return new Promise((resolve, reject) => {
+      console.log('promise');
       this.page.on('requestfinished', async (request) => {
         const response = request.response();
         // Login ajax response
