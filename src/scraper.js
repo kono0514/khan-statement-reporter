@@ -35,6 +35,7 @@ export class Scraper {
     }
     this.page = await pie.getPage(this.browser, this.window);
     this.page.setDefaultNavigationTimeout(15000);
+    await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36');
   }
 
   async fetchStatement(username, password, accountNumber) {
