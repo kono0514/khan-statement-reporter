@@ -15,7 +15,7 @@ export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
-    this.lastSuccessfulCheckTime = this.now();
+    this.lastSuccessfulCheckTime = this.now(30);
     this.scraper = new Scraper(this.win);
     this.listen()
     this.init()
@@ -47,12 +47,12 @@ export class AppMain {
     );
   }
 
-  now() {
+  now(minutes = 1) {
     // Substract 1 minute to allow for some leeway
     let now = new Date();
     now = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000));
 
-    const ms = 1000 * 60 * 1; // 1 minute
+    const ms = 1000 * 60 * minutes; // 1 minute
     return new Date(now.getTime() - ms);
   }
 
