@@ -50,6 +50,8 @@ export class AppMain {
   now() {
     // Substract 1 minute to allow for some leeway
     let now = new Date();
+    now = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000));
+
     const ms = 1000 * 60 * 1; // 1 minute
     return new Date(now.getTime() - ms);
   }

@@ -42,13 +42,13 @@ export default new Vuex.Store({
     },
     incrementScraperFailCount({ commit, state, dispatch }) {
       commit('setScraperFailCount', state.failedScraperTries + 1);
-      if (state.failedScraperTries >= 3) {
+      if (state.failedScraperTries > 3) {
         dispatch('stop', 'Max tries reached (Scraper)');
       }
     },
     incrementApiFailCount({ commit, state, dispatch }) {
       commit('setApiFailCount', state.failedApiTries + 1);
-      if (state.failedApiTries >= 3) {
+      if (state.failedApiTries > 3) {
         dispatch('stop', 'Max tries reached (API)');
       }
     },

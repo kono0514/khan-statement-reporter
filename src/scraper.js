@@ -125,7 +125,7 @@ export class Scraper {
               console.error('Statement download error', error);
               reject(new RetryableError(error.message));
             }
-            // this.window.hide();
+            this.window.hide();
             return;
           }
   
@@ -140,7 +140,7 @@ export class Scraper {
           if (errorMatch != null && errorMatch.length >= 1) {
             console.error('Login failed with error', errorMatch[1]);
             reject(new Error(errorMatch[1]));
-            // this.window.hide();
+            this.window.hide();
             return;
           }
   
@@ -162,7 +162,8 @@ export class Scraper {
   }
 
   async _getTodaysIncomeStatement(accountNumber) {
-    const today = (new Date()).toISOString().substring(0, 10).replace(/-/g, '.');
+    const now = new Date();
+    const today = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000)).toISOString().substring(0, 10).replace(/-/g, '.');
     const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=${today}&ED=${today}`;
     await this.page.goto(statementPageUrl);
 
@@ -192,9 +193,11 @@ export class Scraper {
       // Орлогын гүйлгээ
       const amount = parseFloat(row[4].replace(/,/g, ''));
       if (amount > 0.0) {
+        let timestamp = new Date(row[0]);
+        timestamp = new Date(timestamp.getTime() - (timestamp.getTimezoneOffset()*60*1000));
         statements.push({
           'amount': parseInt(amount).toString(),
-          'timestamp': new Date(Date.parse(row[0])),
+          'timestamp': timestamp,
           'message': row[6],
           'hash': crypto.createHash('sha256').update(row.join(), 'binary').digest('hex'),
         });
