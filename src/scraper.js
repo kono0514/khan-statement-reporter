@@ -19,29 +19,28 @@ export class Scraper {
     this.page = null;
     this.client = null;
     this.parentWindow = win;
+    this.isDevelopment = process.env.NODE_ENV !== 'production';
   }
 
   async init() {
-    let isDevelopment = process.env.NODE_ENV !== 'production';
     this.browser = await pie.connect(app, puppeteer);
     let options = {
-      show: isDevelopment,
-      frame: isDevelopment,
-      closable: isDevelopment,
+      show: this.isDevelopment,
+      closable: this.isDevelopment,
+      minimizable: this.isDevelopment,
     };
     this.window = new BrowserWindow({ title: 'Scraper DO NOT CLOSE', ...options, parent: this.parentWindow });
-    if (isDevelopment) {
+    if (this.isDevelopment) {
       this.window.webContents.openDevTools();
     }
-    this.page = await pie.getPage(this.browser, this.window);
-    this.page.setDefaultNavigationTimeout(15000);
+    this.page = await pie.getPage(this.browser, this.window, true);
+    this.page.setDefaultNavigationTimeout(30000);
     await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36');
   }
 
   async fetchStatement(username, password, accountNumber) {
+    if (!this.isDevelopment) this.window.hide();
     console.log('fetchStatement');
-    this.page.removeAllListeners();
-    await this.page.setRequestInterception(false);
 
     /// Try to download in case the previous session is still alive
     try {
@@ -68,103 +67,77 @@ export class Scraper {
     // Captcha required on initial page load
     if (body.includes('pnlCaptcha')) {
       console.log('captcha');
-      this._grabAttention('Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
-    } else {
-      try {
-        await new Promise(r => setTimeout(r, 1000));
-        await this.page.evaluate((button) => {
+      this._grabAttention('Captcha detected. Captcha-г бөглөөд нэвтэрнэ үү. Нэвтэрсний дараа дахин "Start" дарж эхлүүлээрэй.');
+      throw new Error('Captcha detected');
+    }
+
+    // Click submit then wait for either successful login redirect or failed error message to appear
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      await Promise.all([
+        this.page.evaluate((button) => {
           document.querySelector(button).click();
-        }, 'input[type=submit]');
-        console.log('clicked');
-      } catch (error) {
-        if (error.includes('No node found for selector')) {
-          throw new RetryableError('Couldn\'t find the submit button');
-        } else {
-          throw error;
-        }
-      }
+        }, 'input[type=submit]'),
+        Promise.race([
+          this.page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+          Promise.race([
+            this.page.waitForSelector("#pnlCaptcha"),
+            this.page.waitForSelector("#Info1_warningMsg1"),
+          ]),
+        ]),
+      ]);
+    } catch (error) {
+      console.log('Promise error', error);
+      throw error;
     }
 
-    console.log('detach');
-    if (this.client !== null) {
-      await this.client.detach();
-    }
-    this.client = await this.page.target().createCDPSession();
-    await this.client.send('Network.enable');
-    console.log('Enable');
-
-    // Capture additional headers (set-cookie)
-    const responseCookieHeaders = {};
-    this.client.on('Network.responseReceivedExtraInfo', (response) => {
-      if (response && response.headers) {
-        const cookieHeader = response.headers[Object.keys(response.headers).find(key => key.toLowerCase() === 'set-cookie')];
-        if (cookieHeader) {
-          responseCookieHeaders[response.requestId] = cookieHeader;
-        }
-      }
-    });    
-
-    // Disable successful login form redirection
-    this.page.on('request', request => {
-      if (request.isNavigationRequest() && request.frame() === this.page.mainFrame() && request.url().startsWith('https://e.khanbank.com/pageMain?content=ucMain_Welcome')) {
-        console.log('aborted');
-        request.abort('aborted');
+    let captchaError = false;
+    let warningError = false;
+    let successfullyRedirected = false;
+    try {
+      const captcha = await this.page.$('#pnlCaptcha');
+      const warning = await this.page.$('#Info1_warningMsg1');
+      if (captcha) {
+        captchaError = true;
+      } else if (warning) {
+        warningError = await this.page.evaluate(e => e.textContent, warning);
       } else {
-        request.continue();
+        successfullyRedirected = true;
       }
-    });
-    console.log('reqinter');
-    await this.page.setRequestInterception(true);
-    console.log('done');
+    } catch (error) {
+      // Couldn't check for an element presence on the page.
+      // The page probably got unexpectedly navigated to another page.
+      // Flow of the observed cause:
+      // 1. Logged in and redirected to dashboard
+      // 2. On dashboard, some AJAX call returned 401 Unauthorized
+      // 3. System logs us out and navigates to home page
+      // 4. This error is triggered because we navigated away to home page
+      console.error('This error', error);
+      throw new RetryableError(error.message);
+    }
 
-    return new Promise((resolve, reject) => {
-      console.log('promise');
-      this.page.on('requestfinished', async (request) => {
-        const response = request.response();
-        // Login ajax response
-        if (response.url().startsWith(LOGIN_PAGE_URL) && request.method() === 'POST') {
-          console.log('Processing login ajax response...');
-          const data = await response.text();
-  
-          const cookies = responseCookieHeaders[request._requestId];
-          // Successfully logged in
-          if (cookies && cookies.includes('ASPXAUTH')) {
-            console.log('Logged in successfully...');
+    if (successfullyRedirected) {
+      console.log('Redirected!');
+      try {
+        await this.page.goto('about:blank');
+        console.log('about:blank');
+        const statements = await this._getTodaysIncomeStatement(accountNumber);
+        console.log('Statement downloaded...');
+        return statements;
+      } catch (error) {
+        console.error('Statement download error', error);
+        throw new RetryableError(error.message);
+      }
+    }
 
-            try {
-              // Stop further redirections. We don't care about them
-              await this.page.goto('about:blank');
-              const statements = await this._getTodaysIncomeStatement(accountNumber);
-              console.log('Statement downloaded...');
-              resolve(statements);
-            } catch (error) {
-              console.error('Statement download error', error);
-              reject(new RetryableError(error.message));
-            }
-            this.window.hide();
-            return;
-          }
-  
-          // Captcha required or entered wrong captcha
-          if (data.includes('pnlCaptcha')) {
-            this._grabAttention('Captcha needed. Captcha-г бөглөөд "Нэвтрэх" дарна уу.');
-            return;
-          }
-    
-          // Error message
-          const errorMatch = /Info1_warningMsg1".*?>(.*?)</gmsi.exec(data);
-          if (errorMatch != null && errorMatch.length >= 1) {
-            console.error('Login failed with error', errorMatch[1]);
-            reject(new Error(errorMatch[1]));
-            this.window.hide();
-            return;
-          }
-  
-          // Unknown error
-          this._grabAttention('Unknown error???');
-        }
-      });
-    });
+    if (captchaError) {
+      console.log('Captcha!');
+      this._grabAttention('Captcha detected. Captcha-г бөглөөд нэвтэрнэ үү. Нэвтэрсний дараа "Start" дарж эхлүүлээрэй.');
+      throw new Error('Captcha detected');
+    } else if (warningError !== false) {
+      console.log('Login warning', warningError)
+      throw new Error(warningError);
+    }
   }
 
   _grabAttention(message) {
@@ -186,6 +159,12 @@ export class Scraper {
     // Logged out
     if (this.page.url().includes('pageLoginMini')) {
       throw new Error('Logged out');
+    }
+
+    const body = await this.page.evaluate(() => document.querySelector('body').innerHTML);
+
+    if (body.includes('Систем оффлайн байгаа тул гүйлгээ хийх боломжгүй')) {
+      throw new Error('Систем оффлайн байгаа тул гүйлгээ хийх боломжгүй');
     }
 
     const rows = await this.page.$$eval('#cphMain_ctl00_gridList tbody tr', rows => {
