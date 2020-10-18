@@ -8,6 +8,7 @@ import { Scraper } from './scraper';
 import puppeteer from 'puppeteer-core';
 import { RetryableError } from './retryable_error';
 const log = require('electron-log');
+const { DateTime } = require('luxon');
 
 Object.assign(console, log.functions);
 
@@ -15,7 +16,7 @@ export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
-    this.lastSuccessfulCheckTime = this.now(30);
+    this.startDate = this.now();
     this.scraper = new Scraper(this.win);
     this.listen()
     this.init()
@@ -37,6 +38,11 @@ export class AppMain {
       (newValue) => {
         if (newValue === true) {
           this.validate();
+          if (store.state.recoverMissedAtStart) {
+            this.startDate = this.now(5 * 24 * 60);
+          } else {
+            this.startDate = this.now(30);
+          }
         } else {
           this.win.once('focus', () => {
             this.win.flashFrame(false);
@@ -48,12 +54,9 @@ export class AppMain {
   }
 
   now(minutes = 1) {
-    // Substract 1 minute to allow for some leeway
-    let now = new Date();
-    now = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000));
-
-    const ms = 1000 * 60 * minutes; // 1 minute
-    return new Date(now.getTime() - ms);
+    // Substract minutes to allow for some leeway
+    const now = DateTime.local().setZone('Asia/Ulaanbaatar').minus({ minutes: minutes });
+    return now;
   }
 
   async checkContinously() {
@@ -124,12 +127,18 @@ export class AppMain {
     // Хуулга татах
     const newDonations = [];
     try {
-      const statements = await this.scraper.fetchStatement(validated['username'], validated['password'], validated['accountNumber']);
+      const statements = await this.scraper.fetchStatement(
+        validated['username'],
+        validated['password'],
+        validated['accountNumber'],
+        this.startDate,
+      );
       for (const statement of statements) {
-        if (this.lastSuccessfulCheckTime > statement.timestamp) continue;
-        newDonations.push(statement);
+        if (!store.state.sentStatements.find(s => s.hash === statement.hash)) {
+          newDonations.push(statement);
+        }
       }
-      this.lastSuccessfulCheckTime = this.now();
+      this.startDate = this.now();
       store.dispatch('resetScraperFailCount');
     } catch (error) {
       console.error('Statement result error', error);
@@ -161,11 +170,12 @@ export class AppMain {
         if (response.data['inserted']) {
           insertedCount = response.data['inserted'];
         }
+        store.dispatch('appendStatements', newDonations);
       }
       store.dispatch('resetApiFailCount');
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
     } catch (error) {
-      if (error.response.status === 401) {
+      if (error.response || error.response.status === 401) {
         this.win.webContents.send('logout');
         store.dispatch('stop');
       } else {

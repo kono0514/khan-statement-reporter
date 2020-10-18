@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 // eslint-disable-next-line no-unused-vars
-import { createPersistedState, createSharedMutations } from 'vuex-electron'
+import { createSharedMutations } from 'vuex-electron'
+import createPersistedState from 'vuex-persistedstate'
+import ElectronStore from 'electron-store'
+const electronStore = new ElectronStore()
 
 Vue.use(Vuex)
 
@@ -9,9 +12,11 @@ export default new Vuex.Store({
   state: {
     logs: [],
     running: false,
+    recoverMissedAtStart: false,
     error: null,
     failedScraperTries: 0,
     failedApiTries: 0,
+    sentStatements: [],
   },
   mutations: {
     appendLog(state, payload) {
@@ -31,6 +36,12 @@ export default new Vuex.Store({
     },
     setScraperFailCount(state, payload) {
       state.failedScraperTries = payload;
+    },
+    setRecoverMissedAtStart(state, payload) {
+      state.recoverMissedAtStart = payload;
+    },
+    appendStatement(state, payload) {
+      state.sentStatements.push(payload);
     }
   },
   actions: {
@@ -68,11 +79,26 @@ export default new Vuex.Store({
       commit('setStatus', false);
       commit('setError', error);
     },
+    toggleRecoverMissedAtStart({ commit, state }) {
+      commit('setRecoverMissedAtStart', !state.recoverMissedAtStart);
+    },
+    appendStatements({ commit }, payload) {
+      for (const statement of payload) {
+        commit('appendStatement', statement);
+      }
+    }
   },
   modules: {
   },
   plugins: [
-    // createPersistedState(),
+    createPersistedState({
+      paths: ['recoverMissedAtStart'],
+      storage: {
+        getItem: (key) => electronStore.get(key),
+        setItem: (key, value) => electronStore.set(key, value),
+        removeItem: key => electronStore.delete(key),
+      }
+    }),
     createSharedMutations(),
   ]
 })

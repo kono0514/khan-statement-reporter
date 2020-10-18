@@ -4,11 +4,12 @@
 import { app, BrowserWindow } from 'electron';
 import pie from 'puppeteer-in-electron';
 import puppeteer from 'puppeteer-core';
-import crypto from 'crypto';
 import { exception } from 'console';
 const log = require('electron-log');
 const { dialog } = require('electron');
 import { RetryableError } from './retryable_error';
+import { rowsToStatements } from './scraper_utils';
+const { DateTime } = require('luxon');
 
 Object.assign(console, log.functions);
 
@@ -38,14 +39,14 @@ export class Scraper {
     await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36');
   }
 
-  async fetchStatement(username, password, accountNumber) {
+  async fetchStatement(username, password, accountNumber, startDate) {
     if (!this.isDevelopment) this.window.hide();
     console.log('fetchStatement');
 
     /// Try to download in case the previous session is still alive
     try {
       await this.page.goto('about:blank');
-      const statements = await this._getTodaysIncomeStatement(accountNumber);
+      const statements = await this._getIncomeStatement(accountNumber, startDate);
       console.log('Statement downloaded. Successfully used previous session without logging in...');
       return statements;
     } catch (error) {
@@ -121,7 +122,7 @@ export class Scraper {
       try {
         await this.page.goto('about:blank');
         console.log('about:blank');
-        const statements = await this._getTodaysIncomeStatement(accountNumber);
+        const statements = await this._getIncomeStatement(accountNumber, startDate);
         console.log('Statement downloaded...');
         return statements;
       } catch (error) {
@@ -150,10 +151,15 @@ export class Scraper {
     });
   }
 
-  async _getTodaysIncomeStatement(accountNumber) {
-    const now = new Date();
-    const today = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000)).toISOString().substring(0, 10).replace(/-/g, '.');
-    const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=${today}&ED=${today}`;
+  async _getIncomeStatement(accountNumber, startDate) {
+    let st;
+    const ed = DateTime.local().setZone('Asia/Ulaanbaatar').toFormat('yyyy.LL.dd');
+    if (startDate) {
+      st = startDate.toFormat('yyyy.LL.dd');
+    } else {
+      st = ed;
+    }
+    const statementPageUrl = `https://e.khanbank.com/pagePrint?content=ucAcnt_Statement2&ID=0000000${accountNumber}&CUR=MNT&MD=D&ST=${st}&ED=${ed}`;
     await this.page.goto(statementPageUrl);
 
     // Logged out
@@ -173,32 +179,6 @@ export class Scraper {
       });
     });
 
-    /*
-      [0] - Гүйлгээний огноо
-      [1] - Салбар
-      [2] - Эхний үлдэгдэл
-      [3] - Зарлага
-      [4] - Орлого
-      [5] - Эцсийн үлдэгдэл
-      [6] - Гүйлгээний утга
-      [7] - Харьцсан данс
-    */
-    const statements = [];
-    for (const row of rows) {
-      // Орлогын гүйлгээ
-      const amount = parseFloat(row[4].replace(/,/g, ''));
-      if (amount > 0.0) {
-        let timestamp = new Date(row[0]);
-        timestamp = new Date(timestamp.getTime() - (timestamp.getTimezoneOffset()*60*1000));
-        statements.push({
-          'amount': parseInt(amount).toString(),
-          'timestamp': timestamp,
-          'message': row[6],
-          'hash': crypto.createHash('sha256').update(row.join(), 'binary').digest('hex'),
-        });
-      }
-    }
-  
-    return statements;
+    return rowsToStatements(rows, startDate);
   }
 }

@@ -24,13 +24,13 @@ export default {
     }
   },
   TButton: {
-    fixedClasses: 'focus:outline-none focus:shadow-outline inline-flex items-center transition ease-in-out duration-150',
-    classes: 'text-white bg-blue-600 hover:bg-blue-500 focus:border-blue-700 active:bg-blue-700 text-sm font-medium border border-transparent px-3 py-2 rounded-md',
+    fixedClasses: 'focus:outline-none focus:shadow-outline inline-flex items-center transition ease-in-out duration-150 disabled:opacity-50',
+    classes: 'text-white bg-blue-600 hover:bg-blue-500 focus:border-blue-700 active:bg-blue-700 text-sm font-medium border border-transparent px-3 py-1 rounded-md',
     variants: {
-      secondary: 'text-gray-800 bg-white hover:text-gray-600 text-sm font-medium border px-3 py-2 rounded-md',
-      error: 'text-white bg-red-600 hover:bg-red-500 focus:border-red-700  active:bg-red-700 text-sm font-medium border border-transparent px-3 py-2 rounded-md',
-      success: 'text-white bg-green-600 hover:bg-green-500 focus:border-green-700 active:bg-green-700 text-sm font-medium border border-transparent px-3 py-2 rounded-md',
-      link: 'text-blue-500 underline hover:bg-blue-100 text-sm font-medium border border-transparent px-3 py-2 rounded-md'
+      secondary: 'text-gray-800 bg-white hover:text-gray-600 text-sm font-medium border px-3 py-1 rounded-md',
+      error: 'text-white bg-red-600 hover:bg-red-500 focus:border-red-700  active:bg-red-700 text-sm font-medium border border-transparent px-3 py-1 rounded-md',
+      success: 'text-white bg-green-600 hover:bg-green-500 focus:border-green-700 active:bg-green-700 text-sm font-medium border border-transparent px-3 py-1 rounded-md',
+      link: 'text-blue-500 underline hover:bg-blue-100 text-sm font-medium border border-transparent px-3 py-1 rounded-md'
     }
   },
   TInputGroup: {
@@ -91,7 +91,7 @@ export default {
   },
   TAlert: {
     fixedClasses: {
-      wrapper: 'rounded p-4 flex text-sm border-l-4',
+      wrapper: 'rounded px-3 py-2 flex text-sm border-l-4',
       body: 'flex-grow',
       close: 'ml-4 rounded',
       closeIcon: 'h-5 w-5 fill-current'
@@ -105,7 +105,7 @@ export default {
     variants: {
       danger: {
         wrapper: 'bg-red-100 border-red-500 dark:bg-red-400 dark:border-red-700',
-        body: 'text-red-700 dark:text-gray-100',
+        body: 'text-red-700 dark:text-red-100',
         close: 'text-red-700 hover:text-red-500 hover:bg-red-200 dark:text-red-800'
       },
       success: {

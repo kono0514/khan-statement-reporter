@@ -4,7 +4,7 @@
       Банкны нэвтрэх нэр нууц үг
     </template>
     <t-alert variant="warning" show :dismissible="false" class="mb-4">
-      Энэ мэдээлэл зөвхөн хуулга татахад ашиглагддаг.
+      Энэ мэдээллийг зөвхөн хуулга татахад ашиглана.
     </t-alert>
     <t-input-group
       label="Интернет банкны нэвтрэх нэр"
@@ -29,7 +29,7 @@
         <t-button type="button" @click="close">
           Close
         </t-button>
-        <t-button type="button" class="ml-1" @click="save">
+        <t-button type="button" class="ml-2" @click="save">
           Save
         </t-button>
       </div>

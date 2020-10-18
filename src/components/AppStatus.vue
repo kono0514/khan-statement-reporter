@@ -15,7 +15,7 @@ export default {
     },
     text() {
       let text = '';
-      text += this.running ? 'Running' : 'Stopped';
+      text += this.running ? 'RUNNING' : 'STOPPED';
       text += this.error === null ? '' : `: ${this.error}`;
       return text;
     },
