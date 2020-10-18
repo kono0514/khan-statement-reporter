@@ -39,7 +39,7 @@ export class AppMain {
         if (newValue === true) {
           this.validate();
           if (store.state.recoverMissedAtStart) {
-            this.startDate = this.now(5 * 24 * 60);
+            this.startDate = this.now(3 * 24 * 60);
           } else {
             this.startDate = this.now(30);
           }
