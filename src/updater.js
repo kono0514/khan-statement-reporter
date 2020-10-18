@@ -1,6 +1,11 @@
 import { autoUpdater } from 'electron-updater';
+import { ipcMain } from 'electron';
 
 export default function(win) {
+  ipcMain.on('checkForUpdate', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
+
   setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify();
   }, 5000);
