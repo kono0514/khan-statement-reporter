@@ -97,12 +97,12 @@ export class AppMain {
         return false;
       }
     } catch (error) {
-      if (error.response.status === 401) {
+      console.error(error);
+      if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
-      } else if (error.response.status === 403) {
+      } else if (error.response && error.response.status === 403) {
         store.dispatch('stop', error.response.data.message);
       } else {
-        console.error(error);
         store.dispatch('stop', 'API failure');
       }
       return false;
@@ -175,7 +175,8 @@ export class AppMain {
       store.dispatch('resetApiFailCount');
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
     } catch (error) {
-      if (error.response || error.response.status === 401) {
+      console.log(error);
+      if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
         store.dispatch('stop');
       } else {
