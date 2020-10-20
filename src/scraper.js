@@ -75,6 +75,7 @@ export class Scraper {
     // Click submit then wait for either successful login redirect or failed error message to appear
     await new Promise(r => setTimeout(r, 1000));
     try {
+      await this.page.waitForSelector('input[type=submit]');
       await Promise.all([
         this.page.evaluate((button) => {
           document.querySelector(button).click();
