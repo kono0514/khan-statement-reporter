@@ -175,14 +175,15 @@ export class AppMain {
       store.dispatch('resetApiFailCount');
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
     } catch (error) {
-      console.log(error);
+      console.log('Upload error', error);
       if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
         store.dispatch('stop');
-      } else {
-        console.error(error);
-        store.dispatch('stop', error.response.data.message || 'API failure');
+      } else if (error.response) {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.response.data.message || 'API failure' });
+        store.dispatch('incrementApiFailCount');
+      } else {
+        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: 'API failure -99' });
         store.dispatch('incrementApiFailCount');
       }
     }

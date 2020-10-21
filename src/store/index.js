@@ -93,6 +93,7 @@ export default new Vuex.Store({
   plugins: [
     createPersistedState({
       paths: ['recoverMissedAtStart'],
+      filter: (mutation) => mutation.type === 'setRecoverMissedAtStart',
       storage: {
         getItem: (key) => electronStore.get(key),
         setItem: (key, value) => electronStore.set(key, value),
