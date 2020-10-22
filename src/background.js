@@ -1,15 +1,20 @@
 'use strict'
 
 // eslint-disable-next-line no-unused-vars
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import pie from 'puppeteer-in-electron';
 import { AppMain } from './app';
 import updater from './updater';
+import * as Sentry from "@sentry/electron";
 const windowStateKeeper = require('electron-window-state');
 
 (async () => {
+  Sentry.init({
+    dsn: "https://93e668898a53443d8025ff7f7b56f2d2@o465414.ingest.sentry.io/5478000",
+  });
+
   const isDevelopment = process.env.NODE_ENV !== 'production'
 
   await pie.initialize(app);
