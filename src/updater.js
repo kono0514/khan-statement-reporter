@@ -1,5 +1,5 @@
 import { autoUpdater } from 'electron-updater';
-import { app, ipcMain } from 'electron';
+import { ipcMain } from 'electron';
 
 export default function(win) {
   ipcMain.on('checkForUpdate', () => {
@@ -7,8 +7,7 @@ export default function(win) {
   });
 
   ipcMain.on('restart', () => {
-    app.relaunch();
-    app.exit();
+    autoUpdater.quitAndInstall();
   });
 
   autoUpdater.on('checking-for-update', () => {
