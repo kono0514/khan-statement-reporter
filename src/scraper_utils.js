@@ -25,6 +25,7 @@ module.exports = {
             'timestamp': timestamp,
             'message': row[6],
             'hash': crypto.createHash('sha256').update(row.join(), 'binary').digest('hex'),
+            'newhash': crypto.createHash('sha256').update(row.slice(1).join(), 'binary').digest('hex'),
           });
         }
       }
