@@ -39,7 +39,7 @@ Vue.use(auth, {
   },
   loginData: {
     url: '/api/sanctum/token',
-    redirect: '/',
+    redirect: '/home',
     fetchUser: true,
   },
   logoutData: {

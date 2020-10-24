@@ -1,14 +1,15 @@
 import { autoUpdater } from 'electron-updater';
-import { ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 
 export default function(win) {
   ipcMain.on('checkForUpdate', () => {
     autoUpdater.checkForUpdatesAndNotify();
   });
 
-  setTimeout(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 5000);
+  ipcMain.on('restart', () => {
+    app.relaunch();
+    app.exit();
+  });
 
   autoUpdater.on('checking-for-update', () => {
     win.webContents.send('update', 'Checking for update...');
