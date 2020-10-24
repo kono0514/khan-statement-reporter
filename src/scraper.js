@@ -58,8 +58,15 @@ export class Scraper {
     const LOGIN_PAGE_URL = 'https://e.khanbank.com/pageLoginMini';
     await this.page.goto(LOGIN_PAGE_URL);
     console.log('Login page loaded');
-    this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
-    this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
+
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
+      this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
+    } catch (error) {
+      console.error('Failed to find login fields. Slow connection?', error);
+      throw new RetryableError('Failed to find form fields. Slow connection?');
+    }
 
     const body = await this.page.evaluate(() => document.querySelector('body').innerHTML);
 
