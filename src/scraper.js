@@ -61,8 +61,8 @@ export class Scraper {
 
     await new Promise(r => setTimeout(r, 1000));
     try {
-      this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
-      this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
+      await this.page.$eval('#txtCustNo', (el, value) => el.value = value, username);
+      await this.page.$eval('#txtPassword', (el, value) => el.value = value, password);
     } catch (error) {
       console.error('Failed to find login fields. Slow connection?', error);
       throw new RetryableError('Failed to find form fields. Slow connection?');

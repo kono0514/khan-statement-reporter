@@ -75,7 +75,7 @@ export class AppMain {
     const username = this.electronStore.get(constants.BANK_USERNAME_KEY, '');
     const password = this.electronStore.get(constants.BANK_PASSWORD_KEY, '');
     if (username === '' || password === '') {
-      store.dispatch('stop', 'Интернет банкны нэр нууц үгээ тохируулна уу <a class="text-black" href="#/modal">Change</a>');
+      store.dispatch('stop', 'Интернет банкны нэр нууц үгээ тохируулна уу <a class="text-black" href="#/home/modal">Change</a>');
       return false;
     }
 
