@@ -1,7 +1,7 @@
 'use strict'
 
 // eslint-disable-next-line no-unused-vars
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, globalShortcut } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import pie from 'puppeteer-in-electron';
@@ -104,6 +104,9 @@ const windowStateKeeper = require('electron-window-state');
       }
     }
     createWindow()
+    globalShortcut.register('Alt+CommandOrControl+I', () => {
+      win.webContents.toggleDevTools()
+    })
 
     new AppMain(win);
   })
