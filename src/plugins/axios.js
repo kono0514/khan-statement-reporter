@@ -20,6 +20,7 @@ const _axios = axios.create(config);
 _axios.interceptors.request.use(
   function(config) {
     config.headers['X-Client-Version'] = remote.app.getVersion();
+    console.log(config.headers);
     return config;
   },
   function(error) {

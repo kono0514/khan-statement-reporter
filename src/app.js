@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import { ipcMain } from 'electron';
+import { ipcMain, app } from 'electron';
 import store from './store';
 import ElectronStore from 'electron-store';
 import constants from './constants';
@@ -11,6 +11,7 @@ const log = require('electron-log');
 const { DateTime } = require('luxon');
 
 Object.assign(console, log.functions);
+axios.defaults.headers.common['X-Client-Version'] = app.getVersion();
 
 export class AppMain {
   constructor(win) {
