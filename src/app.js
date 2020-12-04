@@ -6,7 +6,7 @@ import constants from './constants';
 import axios from 'axios';
 import { Scraper } from './scraper';
 import puppeteer from 'puppeteer-core';
-import { RetryableError } from './retryable_error';
+import { isRetryableError } from './retryable_error';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
 
@@ -102,7 +102,10 @@ export class AppMain {
       if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
       } else if (error.response && error.response.status === 403) {
-        store.dispatch('stop', error.response.data.message);
+        store.dispatch('stop', error.response.data.message || '403');
+      } else if (isRetryableError(error)) {
+        store.dispatch('appendErrorLog', { timestamp: (new Date()).toLocaleTimeString(), message: error.message });
+        store.dispatch('incrementApiFailCount');
       } else {
         store.dispatch('stop', 'API failure');
       }
@@ -143,7 +146,7 @@ export class AppMain {
       store.dispatch('resetScraperFailCount');
     } catch (error) {
       console.error('Statement result error', error);
-      if (error instanceof puppeteer.errors.TimeoutError || error instanceof RetryableError) {
+      if (error instanceof puppeteer.errors.TimeoutError || isRetryableError(error)) {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
         store.dispatch('incrementScraperFailCount');
       } else {
