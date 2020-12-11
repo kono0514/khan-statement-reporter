@@ -9,6 +9,7 @@ import puppeteer from 'puppeteer-core';
 import { isRetryableError } from './retryable_error';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
+import * as Sentry from "@sentry/electron";
 
 Object.assign(console, log.functions);
 axios.defaults.headers.common['X-Client-Version'] = app.getVersion();
@@ -106,8 +107,10 @@ export class AppMain {
       } else if (isRetryableError(error)) {
         store.dispatch('appendErrorLog', { timestamp: (new Date()).toLocaleTimeString(), message: error.message });
         store.dispatch('incrementApiFailCount');
+        Sentry.captureException(error);
       } else {
         store.dispatch('stop', 'API failure');
+        Sentry.captureException(error);
       }
       return false;
     }
@@ -149,8 +152,10 @@ export class AppMain {
       if (error instanceof puppeteer.errors.TimeoutError || isRetryableError(error)) {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
         store.dispatch('incrementScraperFailCount');
+        Sentry.captureException(error);
       } else {
         store.dispatch('stop', `Khanbank: ${error}`);
+        Sentry.captureException(error);
       }
       return;
     }
@@ -179,16 +184,18 @@ export class AppMain {
       store.dispatch('resetApiFailCount');
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
     } catch (error) {
-      console.log('Upload error', error);
+      console.error('Upload error', error);
       if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
         store.dispatch('stop');
       } else if (error.response) {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.response.data.message || 'API failure' });
         store.dispatch('incrementApiFailCount');
+        Sentry.captureException(error);
       } else {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: 'API failure -99' });
         store.dispatch('incrementApiFailCount');
+        Sentry.captureException(error);
       }
     }
   }
