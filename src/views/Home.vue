@@ -3,6 +3,7 @@
     <nav-bar></nav-bar>
 
     <div class="mt-4 px-3">
+      <subscription-expiry-date></subscription-expiry-date>
       <app-status></app-status>
       <div class="flex flex-col my-4 items-start">
         <div class="flex mb-2">
@@ -34,6 +35,7 @@
 <script>
 import NavBar from '../components/NavBar.vue'
 import AppStatus from '../components/AppStatus.vue'
+import SubscriptionExpiryDate from '../components/SubscriptionExpiryDate.vue'
 import { mapState, mapActions } from 'vuex'
 const { ipcRenderer } = require('electron')
 
@@ -42,6 +44,7 @@ export default {
   components: {
     NavBar,
     AppStatus,
+    SubscriptionExpiryDate,
   },
   computed: {
     logs() {

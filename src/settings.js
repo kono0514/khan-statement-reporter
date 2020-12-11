@@ -98,7 +98,7 @@ export default {
     },
     classes: {
       wrapper: 'bg-blue-100 border-blue-500 dark:bg-blue-400 dark:border-blue-700',
-      body: 'text-blue-700 dark:text-blue-800',
+      body: 'text-blue-700 dark:text-blue-900',
       close: 'text-blue-700 hover:text-blue-500 hover:bg-blue-200 dark:text-blue-800',
       closeIcon: 'h-5 w-5 fill-current'
     },
