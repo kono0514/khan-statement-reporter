@@ -36,7 +36,7 @@ const windowStateKeeper = require('electron-window-state');
     // Create the browser window.
     win = new BrowserWindow({
       width: 650,
-      height: 270,
+      height: 280,
       x: mainWindowState.x,
       y: mainWindowState.y,
       webPreferences: {

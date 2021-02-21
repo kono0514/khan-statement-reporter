@@ -61,7 +61,6 @@ export class AppMain {
       });
       logWinState.manage(logWin);
       logWin.loadURL(url);
-      logWin.webContents.openDevTools();
     });
 
     // eslint-disable-next-line no-unused-vars
