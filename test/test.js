@@ -29,16 +29,16 @@ describe('Statement parsing from rows', () => {
     assert.deepStrictEqual(
       parsed.map(s => s.hash),
       [
-        'a87239b0f5c886f0ae9c2ec5a6b6d7f7cbee233f998fed3e36a7e15affbc80cc',
-        'dda8bf7bbc6595356aeb5a630016ffa8b46400ecfc996bd4d88df967b8ea056e',
-        'ebbcb02201d08ee03bf168bb0bbdebe6bc7c20fa539820c4357490be3c7b26fe',
-        'd1e92680fa191dbb73db0d04225a7a17b2296a3b8b95b5d720daf2e85c8da573',
-        '6086b2e018535843d728042f3e28aa2a8c919da6558d84631b715830682bb1d2'
+        'c0fad52bdb9b57b69700b83502db309bb0206355b485e134ed398c920e456282',
+        '07228987c2c092b22d017afd938d88b14ef67d560488e9f2d539cada046333f0',
+        'aa7435ab38d4226873b114cb1cc3b9d555311ad4388482907f4cf9c9897be125',
+        '6991e0a19d3df7a138894b1b1f68b43dce22a6a416ebb34a551b62a79df52e24',
+        '1f87b55b8d4bce5d7d532d97166a6d751ce7454e940ada21a8dd6d05f1002e09'
       ]
     );
   });
 
-  it('Currectly handle new day switching', () => {
+  it('Correctly handle new day switching', () => {
     const rows = [
       ["2020.10.11 23:10", "5071", "1,793,060.91", "0.00", "200.00", "1,793,260.91", "88888888", "5400888006"],
       ["2020.10.11 23:40", "5071", "1,793,260.91", "0.00", "200.00", "1,793,460.91", "99999999", "5400888006"],
@@ -56,9 +56,9 @@ describe('Statement parsing from rows', () => {
     assert.deepStrictEqual(
       parsed.map(s => s.hash),
       [
-        '712be62afe936992c29a29c1c03b5d3b295534e158a8f0eff32927b2870dfb92',
-        '131c2cc05bd6cd4198dd9bd6189bfa3af6e8c040ba727f06d9e8436d966d9781',
-        'db4c2549524641fdd6612fe5fa5b337b9b4c2fd2ab9534f75531d5e580d5981d'
+        'aa7435ab38d4226873b114cb1cc3b9d555311ad4388482907f4cf9c9897be125',
+        '6991e0a19d3df7a138894b1b1f68b43dce22a6a416ebb34a551b62a79df52e24',
+        '8cafc88ef07a2d5f463e5a37b6edf1348924c84c4c07273d03f1ff81d7415a55'
       ]
     );
   });

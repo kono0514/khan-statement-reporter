@@ -5,22 +5,29 @@
 @tailwind utilities;
 
 @layer base {
-    body {
-        @apply select-none;
-    }
+  body {
+    @apply select-none;
+  }
 }
 
 @layer components {
-    .dropdown-item {
-        @apply flex px-2 py-1 items-center cursor-pointer text-gray-800 font-medium text-sm rounded whitespace-no-wrap w-full;
-        .dark & {
-            @apply text-gray-300;
-        }
+  .dropdown-item {
+    @apply flex px-2 py-1 items-center cursor-pointer text-gray-800 font-medium text-sm rounded whitespace-nowrap w-full;
+    .dark & {
+      @apply text-gray-300;
     }
-    .dropdown-item:hover {
-        @apply bg-gray-200;
-        .dark & {
-            @apply bg-gray-700;
-        }
+  }
+  .dropdown-item:hover {
+    @apply bg-gray-200;
+    .dark & {
+      @apply bg-gray-700;
     }
+  }
+
+  .dark .tippy-tooltip .tippy-backdrop{
+    @apply bg-gray-200;
+  }
+  .dark .tippy-tooltip .tippy-content{
+    @apply text-black;
+  }
 }

@@ -20,7 +20,7 @@ module.exports = {
       },
       chainWebpackRendererProcess: (config) => {
         config.plugin('html').tap((args) => {
-          args[0].title = 'Khan Statement Reporter'
+          args[0].title = `Khan Statement Reporter (${require('./package.json').version})`
           return args
         })
       },

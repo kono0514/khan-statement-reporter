@@ -1,43 +1,58 @@
 <template>
-  <section class="container mx-auto py-12 px-4">
-    <div class="w-full sm:w-8/12 md:w-6/12 lg:w-4/12 xl:w-3/12 mx-auto space-y-5">
-      <h1 class="text-4xl text-center text-gray-900 dark:text-gray-300 font-semibold">Login</h1>
+  <div class="flex flex-col items-center">
+    <nav-bar></nav-bar>
+
+    <section class="container mt-4 pb-4 px-4 space-y-4">
       <form class="space-y-4">
-        <t-input-group
-          label="Email"
-        >
-          <t-input
-            v-model="email"
-            type="email"
-            class="w-full"
-            ref="email"
-          />
-        </t-input-group>
-        <t-input-group
-          label="Password"
-        >
-          <t-input
-            v-model="password"
-            type="password"
-            class="w-full"
-            ref="password"
-          />
-        </t-input-group>
+        <div class="flex flex-row space-x-4">
+          <t-input-group
+            label="Email"
+            class="flex-1"
+          >
+            <t-input
+              v-model="email"
+              type="email"
+              class="w-full"
+              ref="email"
+            />
+          </t-input-group>
+          <t-input-group
+            label="Password"
+            class="flex-1"
+          >
+            <t-input
+              v-model="password"
+              type="password"
+              class="w-full"
+              ref="password"
+            />
+          </t-input-group>
+        </div>
         <t-alert variant="danger" :show="authError !== null" :dismissible="false">
           {{ authError }}
         </t-alert>
         <t-button :disabled="loggingIn" @click="login" class="w-full justify-center" :class="{'opacity-25 pointer-events-none cursor-default': loggingIn}">Login</t-button>
       </form>
-    </div>
-  </section>
+
+      <support-links class="flex justify-end space-x-2"></support-links>
+    </section>
+  </div>
 </template>
 
 <script>
+import NavBar from '@/components/NavBar.vue';
+import SupportLinks from '@/components/SupportLinks.vue';
+import constants from '@/constants';
 import ElectronStore from 'electron-store';
+import { mapState, mapActions } from 'vuex';
 const electronStore = new ElectronStore();
 
 export default {
   name: 'login',
+  components: {
+    NavBar,
+    SupportLinks,
+  },
   data() {
     return {
       'email': '',
@@ -45,6 +60,9 @@ export default {
       'authError': null,
       'loggingIn': false,
     };
+  },
+  computed: {
+    ...mapState(['rememberedEmail']),
   },
   mounted() {
     if (this.email === '') {
@@ -64,9 +82,9 @@ export default {
             password: this.password,
           },
         });
-        
-        localStorage.setItem('email', this.email);
-        this.$store.dispatch('start');
+
+        this.rememberEmail(this.email);
+        this.start();
       } catch (error) {
         this.authError =
           error.response.data.message ||
@@ -74,15 +92,16 @@ export default {
       } finally {
         this.loggingIn = false;
       }
-    }
+    },
+    ...mapActions(['start', 'rememberEmail']),
   },
   created() {
-    const rememberedEmail = localStorage.getItem('email');
-    if (rememberedEmail) {
-      this.email = rememberedEmail;
+    if (this.rememberedEmail && this.rememberedEmail !== '') {
+      this.email = this.rememberedEmail;
     }
 
-    electronStore.clear();
+    electronStore.delete(constants.BANK_USERNAME_KEY);
+    electronStore.delete(constants.BANK_PASSWORD_KEY);
   }
 }
 </script>

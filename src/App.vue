@@ -1,28 +1,38 @@
 <template>
-  <div id="app">
+  <div id="app" class="min-h-screen">
     <router-view/>
-
-    <app-version></app-version>
   </div>
 </template>
 
 <script>
-import AppVersion from './components/AppVersion.vue'
+import { mapState } from 'vuex'
 
 export default {
-  components: {
-    AppVersion,
+  computed: {
+    ...mapState(['darkModeEnabled']),
+  },
+  watch: {
+    darkModeEnabled: {
+      immediate: true,
+      handler(newValue) {
+        if (newValue) {
+          document.querySelector('html').classList.add('dark');
+        } else {
+          document.querySelector('html').classList.remove('dark');
+        }
+      }
+    }
   },
   created() {
-    let shell = require('electron').shell
+    let shell = require('electron').shell;
     document.addEventListener('click', function (event) {
       var a = event.target.closest('a');
 
       if (a && a.className.includes('external')) {
-        event.preventDefault()
-        shell.openExternal(a.href)
+        event.preventDefault();
+        shell.openExternal(a.href);
       }
-    })
+    });
   }
 }
 </script>

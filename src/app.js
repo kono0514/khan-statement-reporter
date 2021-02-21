@@ -1,23 +1,24 @@
 // eslint-disable-next-line no-unused-vars
-import { ipcMain, app } from 'electron';
+import { ipcMain, app, BrowserWindow } from 'electron';
 import store from './store';
 import ElectronStore from 'electron-store';
 import constants from './constants';
-import axios from 'axios';
+import axios from './axios';
 import { Scraper } from './scraper';
 import puppeteer from 'puppeteer-core';
 import { isRetryableError } from './retryable_error';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
 import * as Sentry from "@sentry/electron";
+const windowStateKeeper = require('electron-window-state');
 
 Object.assign(console, log.functions);
-axios.defaults.headers.common['X-Client-Version'] = app.getVersion();
 
 export class AppMain {
   constructor(win) {
     this.win = win;
     this.electronStore = new ElectronStore();
+    this.electronDownloadLogStore = new ElectronStore({ name: 'downloadLogs' });
     this.startDate = this.now();
     this.scraper = new Scraper(this.win);
     this.listen()
@@ -25,14 +26,51 @@ export class AppMain {
   }
 
   async init() {
+    // Start with a fresh download logs
+    this.electronDownloadLogStore.clear();
+
     await this.scraper.init();
     this.checkContinously();
   }
 
   async listen() {
+    ipcMain.on('openDownloadLogWindow', () => {
+      let url;
+      if (process.env.WEBPACK_DEV_SERVER_URL) {
+        url = `${process.env.WEBPACK_DEV_SERVER_URL}#downloadLog`;
+      } else {
+        url = 'app://./index.html/#downloadLog';
+      }
+
+      let logWinState = windowStateKeeper({
+        file: 'log-window-state.json',
+        defaultWidth: 600,
+        defaultHeight: 400,
+      });
+      const logWin = new BrowserWindow({
+        parent: this.win,
+        width: logWinState.width,
+        height: logWinState.height,
+        x: logWinState.x,
+        y: logWinState.y,
+        webPreferences: {
+          nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+          enableRemoteModule: true,
+        },
+        backgroundColor: '#1a202c',
+      });
+      logWinState.manage(logWin);
+      logWin.loadURL(url);
+      logWin.webContents.openDevTools();
+    });
+
     // eslint-disable-next-line no-unused-vars
     ipcMain.on('validateNow', async (event) => {
       this.validate();
+    });
+
+    ipcMain.on('getMainLogPath', (event) => {
+      event.returnValue = log.transports.file.getFile().path;
     });
 
     store.watch(
@@ -41,7 +79,7 @@ export class AppMain {
         if (newValue === true) {
           this.validate();
           if (store.state.recoverMissedAtStart) {
-            this.startDate = this.now(3 * 24 * 60);
+            this.startDate = this.now(store.state.recoverMissedDays * 24 * 60);
           } else {
             this.startDate = this.now(30);
           }
@@ -77,7 +115,7 @@ export class AppMain {
     const username = this.electronStore.get(constants.BANK_USERNAME_KEY, '');
     const password = this.electronStore.get(constants.BANK_PASSWORD_KEY, '');
     if (username === '' || password === '') {
-      store.dispatch('stop', 'Интернет банкны нэр нууц үгээ тохируулна уу <a class="text-black" href="#/home/modal">Change</a>');
+      store.dispatch('stop', 'Интернет банкны нэр нууц үгээ тохируулна уу');
       return false;
     }
 
@@ -87,7 +125,6 @@ export class AppMain {
       const response = await axios.get(
         '/api/user/account_number?bank=khan_internet_bank_client',
         {
-          baseURL: process.env.VUE_APP_URL,
           headers: {
             'Authorization': `Bearer ${access_token}`,
           }
@@ -95,11 +132,11 @@ export class AppMain {
       );
       accountNumber = response.data['account_number'];
       if (!accountNumber || accountNumber === '') {
-        store.dispatch('stop', `Банк нэмээгүй байна <a class="text-black external" href="${process.env.VUE_APP_URL}/dashboard">Нэмэх</a>`);
+        store.dispatch('stop', `Банк нэмээгүй байна. <a class="external text-blue-600 underline hover:text-blue-700" href="${process.env.VUE_APP_URL}/dashboard">Энд дарж нэмнэ үү</a>`);
         return false;
       }
     } catch (error) {
-      console.error(error);
+      console.error('Get account number error', error);
       if (error.response && error.response.status === 401) {
         this.win.webContents.send('logout');
       } else if (error.response && error.response.status === 403) {
@@ -170,7 +207,6 @@ export class AppMain {
             account_number: validated['accountNumber'],
           },
           {
-            baseURL: process.env.VUE_APP_URL,
             headers: {
               'Authorization': `Bearer ${validated['accessToken']}`,
             }
@@ -182,7 +218,7 @@ export class AppMain {
         store.dispatch('appendStatements', newDonations);
       }
       store.dispatch('resetApiFailCount');
-      store.dispatch('appendLog', { timestamp: checkStartTime, message: `Шинэ орлого -> ${insertedCount}`});
+      store.dispatch('appendLog', { timestamp: checkStartTime, message: `New Donations = ${insertedCount}`});
     } catch (error) {
       console.error('Upload error', error);
       if (error.response && error.response.status === 401) {

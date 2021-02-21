@@ -25,12 +25,13 @@ export class Scraper {
 
   async init() {
     this.browser = await pie.connect(app, puppeteer);
-    let options = {
+    this.window = new BrowserWindow({
+      title: 'Scraper DO NOT CLOSE',
+      parent: this.parentWindow,
       show: this.isDevelopment,
       closable: this.isDevelopment,
       minimizable: this.isDevelopment,
-    };
-    this.window = new BrowserWindow({ title: 'Scraper DO NOT CLOSE', ...options, parent: this.parentWindow });
+    });
     if (this.isDevelopment) {
       this.window.webContents.openDevTools();
     }
@@ -41,7 +42,6 @@ export class Scraper {
 
   async fetchStatement(username, password, accountNumber, startDate) {
     if (!this.isDevelopment) this.window.hide();
-    console.log('fetchStatement');
 
     /// Try to download in case the previous session is still alive
     try {
@@ -57,7 +57,6 @@ export class Scraper {
     console.log('Logging in...');
     const LOGIN_PAGE_URL = 'https://e.khanbank.com/pageLoginMini';
     await this.page.goto(LOGIN_PAGE_URL);
-    console.log('Login page loaded');
 
     await new Promise(r => setTimeout(r, 1000));
     try {
@@ -70,35 +69,27 @@ export class Scraper {
 
     const body = await this.page.evaluate(() => document.querySelector('body').innerHTML);
 
-    console.log('Body evaluated');
-
     // Captcha required on initial page load
     if (body.includes('pnlCaptcha')) {
-      console.log('captcha');
       this._grabAttention('Captcha detected. Captcha-г бөглөөд нэвтэрнэ үү. Нэвтэрсний дараа дахин "Start" дарж эхлүүлээрэй.');
       throw new Error('Captcha detected');
     }
 
     // Click submit then wait for either successful login redirect or failed error message to appear
     await new Promise(r => setTimeout(r, 1000));
-    try {
-      await this.page.waitForSelector('input[type=submit]');
-      await Promise.all([
-        this.page.evaluate((button) => {
-          document.querySelector(button).click();
-        }, 'input[type=submit]'),
+    await this.page.waitForSelector('input[type=submit]');
+    await Promise.all([
+      this.page.evaluate((button) => {
+        document.querySelector(button).click();
+      }, 'input[type=submit]'),
+      Promise.race([
+        this.page.waitForNavigation({ waitUntil: "domcontentloaded" }),
         Promise.race([
-          this.page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-          Promise.race([
-            this.page.waitForSelector("#pnlCaptcha"),
-            this.page.waitForSelector("#Info1_warningMsg1"),
-          ]),
+          this.page.waitForSelector("#pnlCaptcha"),
+          this.page.waitForSelector("#Info1_warningMsg1"),
         ]),
-      ]);
-    } catch (error) {
-      console.log('Promise error', error);
-      throw error;
-    }
+      ]),
+    ]);
 
     let captchaError = false;
     let warningError = false;
@@ -121,15 +112,12 @@ export class Scraper {
       // 2. On dashboard, some AJAX call returned 401 Unauthorized
       // 3. System logs us out and navigates to home page
       // 4. This error is triggered because we navigated away to home page
-      console.error('This error', error);
-      throw new RetryableError(error.message);
+      throw new RetryableError(`E99 ${error.message}`);
     }
 
     if (successfullyRedirected) {
-      console.log('Redirected!');
       try {
         await this.page.goto('about:blank');
-        console.log('about:blank');
         const statements = await this._getIncomeStatement(accountNumber, startDate);
         console.log('Statement downloaded...');
         return statements;
@@ -140,17 +128,14 @@ export class Scraper {
     }
 
     if (captchaError) {
-      console.log('Captcha!');
       this._grabAttention('Captcha detected. Captcha-г бөглөөд нэвтэрнэ үү. Нэвтэрсний дараа "Start" дарж эхлүүлээрэй.');
       throw new Error('Captcha detected');
     } else if (warningError !== false) {
-      console.log('Login warning', warningError)
       throw new Error(warningError);
     }
   }
 
   _grabAttention(message) {
-    console.warn(message);
     this.window.show();
     dialog.showMessageBox(this.window, {
       type: 'warning',
@@ -187,6 +172,8 @@ export class Scraper {
       });
     });
 
-    return rowsToStatements(rows, startDate);
+    const filteredStatements = rowsToStatements(rows, startDate);
+    console.log(`Account: ******${accountNumber.slice(-4)}, St: ${st}, Ed: ${ed}, Rows: ${rows.length}, Filtered: ${filteredStatements.length}`);
+    return filteredStatements;
   }
 }

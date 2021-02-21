@@ -18,7 +18,7 @@ module.exports = {
       // Орлогын гүйлгээ
       const amount = parseFloat(row[4].replace(/,/g, ''));
       if (amount > 0.0) {
-        const timestamp = DateTime.fromJSDate(new Date(row[0]));
+        const timestamp = DateTime.fromFormat(row[0], 'yyyy.MM.dd HH:mm', { zone: 'Asia/Ulaanbaatar' });
         if (timestamp.diff(startDate).as('seconds') > 0) {
           statements.push({
             'amount': amount,

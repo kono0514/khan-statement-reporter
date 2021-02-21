@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue'
-import ChangeBankCredentials from '../views/ChangeBankCredentials.vue'
-import UpdateChecker from '../views/UpdateChecker.vue'
+import Home from '@/views/Home.vue'
+import Login from '@/views/Login.vue'
+import Config from '@/views/Config.vue'
+import UpdateChecker from '@/views/UpdateChecker.vue'
+import DownloadLog from '@/views/DownloadLog.vue'
 
 Vue.use(VueRouter)
 
@@ -34,16 +35,22 @@ const routes = [
     },
     children: [
       {
-        path: 'modal',
-        name: 'Modal',
-        component: ChangeBankCredentials,
+        path: 'config',
+        name: 'Config',
+        component: Config,
       }
     ]
   },
+  {
+    path: '/downloadLog',
+    name: 'DownloadLog',
+    component: DownloadLog,
+  }
 ]
 
 const router = new VueRouter({
-  routes
+  routes,
+  mode: 'hash',
 })
 
 export default router

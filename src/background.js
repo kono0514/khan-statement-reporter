@@ -17,6 +17,9 @@ const windowStateKeeper = require('electron-window-state');
 
   const isDevelopment = process.env.NODE_ENV !== 'production'
 
+  // Ignore weak Khanbank certificate on MacOS
+  app.commandLine.appendSwitch('ignore-certificate-errors')
+
   await pie.initialize(app);
 
   // Keep a global reference of the window object, if you don't, the window will
@@ -29,15 +32,12 @@ const windowStateKeeper = require('electron-window-state');
   ])
 
   function createWindow() {
-    let mainWindowState = windowStateKeeper({
-      defaultWidth: 400,
-      defaultHeight: 540,
-    });
+    let mainWindowState = windowStateKeeper();
 
     // Create the browser window.
     win = new BrowserWindow({
-      width: mainWindowState.width,
-      height: mainWindowState.height,
+      width: 650,
+      height: 270,
       x: mainWindowState.x,
       y: mainWindowState.y,
       webPreferences: {
