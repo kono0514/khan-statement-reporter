@@ -190,6 +190,7 @@ export class AppMain {
         store.dispatch('incrementScraperFailCount');
         Sentry.captureException(error);
       } else {
+        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
         store.dispatch('stop', `Khanbank: ${error}`);
         Sentry.captureException(error);
       }
