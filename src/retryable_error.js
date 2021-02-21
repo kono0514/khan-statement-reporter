@@ -20,6 +20,7 @@ function _isNetworkError(error) {
   if (!error.message) return false;
 
   return error.message.startsWith('getaddrinfo') ||
+        error.message.startsWith('connect E') ||
         error.message === 'net::ERR_INTERNET_DISCONNECTED' ||
         error.message === 'net::ERR_PROXY_CONNECTION_FAILED' ||
         error.message === 'net::ERR_CONNECTION_RESET' ||
