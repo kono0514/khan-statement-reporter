@@ -79,7 +79,7 @@
 
 <script>
 import constants from '@/constants';
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex';
 import ElectronStore from 'electron-store';
 const electronStore = new ElectronStore();
 
@@ -91,7 +91,7 @@ export default {
       password: '',
       nuhujBurtgehEnabled: false,
       nuhujBurtgehDays: 0,
-    }
+    };
   },
   methods: {
     save() {
@@ -119,8 +119,8 @@ export default {
     this.password = electronStore.get(constants.BANK_PASSWORD_KEY, '');
     this.nuhujBurtgehEnabled = this.$store.state.recoverMissedAtStart;
     this.nuhujBurtgehDays = this.$store.state.recoverMissedDays;
-  }
-}
+  },
+};
 </script>
 
 <style>

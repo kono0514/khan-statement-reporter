@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 import Vue             from 'vue';
 import auth            from '@websanova/vue-auth';
@@ -49,6 +49,6 @@ Vue.use(auth, {
   refreshData: {
     enabled: false,
   },
-})
+});
 
 export default {};

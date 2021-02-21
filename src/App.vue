@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
 
 export default {
   computed: {
@@ -20,8 +20,8 @@ export default {
         } else {
           document.querySelector('html').classList.remove('dark');
         }
-      }
-    }
+      },
+    },
   },
   created() {
     let shell = require('electron').shell;
@@ -33,9 +33,10 @@ export default {
         shell.openExternal(a.href);
       }
     });
-  }
-}
+  },
+};
 </script>
 
 <style>
+
 </style>

@@ -8,14 +8,14 @@
 </template>
 
 <script>
-import { remote } from 'electron'
-const { ipcRenderer } = require('electron')
+import { remote } from 'electron';
+const { ipcRenderer } = require('electron');
 
 export default {
   name: 'app-version',
   data() {
     return {
-      updateMessage: ''
+      updateMessage: '',
     };
   },
   created() {
@@ -24,8 +24,8 @@ export default {
     ipcRenderer.on('update', (event, message) => {
       this.updateMessage = message;
     });
-  }
-}
+  },
+};
 </script>
 
 <style>

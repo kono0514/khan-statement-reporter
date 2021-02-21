@@ -12,7 +12,7 @@ _axios.interceptors.request.use(
   function(config) {
     config.headers['X-Client-Version'] = app.getVersion();
     return config;
-  }
+  },
 );
 
 export default _axios;

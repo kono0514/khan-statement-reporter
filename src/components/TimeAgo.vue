@@ -20,7 +20,7 @@ export default {
   data() {
     return {
       timeagoString: '',
-    }
+    };
   },
   watch: {
     interval() {
@@ -54,7 +54,7 @@ export default {
   beforeDestroy() {
     this.stopUpdater();
   },
-}
+};
 </script>
 
 <style>

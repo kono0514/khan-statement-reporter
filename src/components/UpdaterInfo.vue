@@ -17,14 +17,14 @@
 </template>
 
 <script>
-const { ipcRenderer } = require('electron')
+const { ipcRenderer } = require('electron');
 
 export default {
   name: 'updater-info',
   data() {
     return {
       updateMessage: '',
-    }
+    };
   },
   computed: {
     updating() {
@@ -32,19 +32,19 @@ export default {
     },
     tooltip() {
       return this.updating ? this.updateMessage : 'Update';
-    }
+    },
   },
   methods: {
     checkForUpdate() {
       ipcRenderer.send('checkForUpdate');
-    }
+    },
   },
   created() {
     ipcRenderer.on('update', (event, message) => {
       this.updateMessage = message;
     });
   },
-}
+};
 </script>
 
 <style>

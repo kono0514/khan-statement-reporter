@@ -102,8 +102,8 @@ export default {
 
     electronStore.delete(constants.BANK_USERNAME_KEY);
     electronStore.delete(constants.BANK_PASSWORD_KEY);
-  }
-}
+  },
+};
 </script>
 
 <style>

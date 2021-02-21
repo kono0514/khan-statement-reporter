@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'theme-switcher',
@@ -24,7 +24,7 @@ export default {
   methods: {
     ...mapActions(['toggleDarkMode']),
   },
-}
+};
 </script>
 
 <style>

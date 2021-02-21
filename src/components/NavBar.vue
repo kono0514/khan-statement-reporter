@@ -33,13 +33,13 @@
 </template>
 
 <script>
-import ElectronStore from 'electron-store'
-import UserInfo from '@/components/UserInfo.vue'
-import UpdaterInfo from '@/components/UpdaterInfo.vue'
-import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import ElectronStore from 'electron-store';
+import UserInfo from '@/components/UserInfo.vue';
+import UpdaterInfo from '@/components/UpdaterInfo.vue';
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import constants from '@/constants';
-import { remote } from 'electron'
-const electronStore = new ElectronStore()
+import { remote } from 'electron';
+const electronStore = new ElectronStore();
 
 export default {
   name: 'navbar',
@@ -50,15 +50,15 @@ export default {
   },
   methods: {
     logout() {
-      electronStore.delete(constants.BANK_USERNAME_KEY)
-      electronStore.delete(constants.BANK_PASSWORD_KEY)
-      this.$auth.logout()
+      electronStore.delete(constants.BANK_USERNAME_KEY);
+      electronStore.delete(constants.BANK_PASSWORD_KEY);
+      this.$auth.logout();
     },
   },
   created() {
-    this.appVersion = remote.app.getVersion()
-  }
-}
+    this.appVersion = remote.app.getVersion();
+  },
+};
 </script>
 
 <style>

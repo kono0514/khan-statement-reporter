@@ -8,7 +8,7 @@
 <script>
 export default {
   name: 'support-links',
-}
+};
 </script>
 
 <style>

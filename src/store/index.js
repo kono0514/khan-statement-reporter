@@ -1,14 +1,13 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-// eslint-disable-next-line no-unused-vars
-import { createSharedMutations } from 'vuex-electron'
-import createPersistedState from 'vuex-persistedstate'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import { createSharedMutations } from 'vuex-electron';
+import createPersistedState from 'vuex-persistedstate';
 import { DateTime } from 'luxon';
-import ElectronStore from 'electron-store'
-const electronStore = new ElectronStore()
-const electronDownloadLogStore = new ElectronStore({ name: 'downloadLogs' })
+import ElectronStore from 'electron-store';
+const electronStore = new ElectronStore();
+const electronDownloadLogStore = new ElectronStore({ name: 'downloadLogs' });
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
@@ -58,7 +57,7 @@ export default new Vuex.Store({
     },
     appendStatement(state, payload) {
       state.sentStatements.push(payload);
-    }
+    },
   },
   actions: {
     appendLog({ commit }, payload) {
@@ -111,7 +110,7 @@ export default new Vuex.Store({
       for (const statement of payload) {
         commit('appendStatement', statement);
       }
-    }
+    },
   },
   modules: {
   },
@@ -125,7 +124,7 @@ export default new Vuex.Store({
         getItem: key => electronStore.get(key),
         setItem: (key, value) => electronStore.set(key, value),
         removeItem: key => electronStore.delete(key),
-      }
+      },
     }),
     // Persist logs in localStorage to make it easily accessible across multiple browser windows
     createPersistedState({
@@ -138,8 +137,8 @@ export default new Vuex.Store({
         getItem: key => electronDownloadLogStore.get(key),
         setItem: (key, value) => electronDownloadLogStore.set(key, value),
         removeItem: key => electronDownloadLogStore.delete(key),
-      }
+      },
     }),
     createSharedMutations(),
-  ]
-})
+  ],
+});

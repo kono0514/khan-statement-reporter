@@ -18,7 +18,7 @@ export default {
       return this.$store.state.logs.slice(0).reverse().join('\n');
     },
   },
-}
+};
 </script>
 
 <style>

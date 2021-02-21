@@ -36,7 +36,7 @@ export default {
     return {
       expiresAt: null,
       loading: false,
-    }
+    };
   },
   computed: {
     colorClass() {
@@ -83,11 +83,11 @@ export default {
           this.expiresAt = DateTime.fromISO(e.expires_at);
         }
         setTimeout(() => {
-          this.loading = false
+          this.loading = false;
         }, 1000);
       });
-  }
-}
+  },
+};
 </script>
 
 <style>

@@ -1,6 +1,6 @@
 /* eslint-disable no-unreachable */
 /* eslint-disable no-unused-vars */
-"use strict";
+'use strict';
 import { app, BrowserWindow } from 'electron';
 import pie from 'puppeteer-in-electron';
 import puppeteer from 'puppeteer-core';
@@ -83,10 +83,10 @@ export class Scraper {
         document.querySelector(button).click();
       }, 'input[type=submit]'),
       Promise.race([
-        this.page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+        this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
         Promise.race([
-          this.page.waitForSelector("#pnlCaptcha"),
-          this.page.waitForSelector("#Info1_warningMsg1"),
+          this.page.waitForSelector('#pnlCaptcha'),
+          this.page.waitForSelector('#Info1_warningMsg1'),
         ]),
       ]),
     ]);

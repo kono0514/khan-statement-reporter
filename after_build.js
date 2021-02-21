@@ -6,9 +6,9 @@ exports.default = function (buildResult) {
 
   if (exeFilePath) {
     const newPath = path.join(buildResult.outDir, `${buildResult.configuration.productName} Setup Latest.exe`.replace(/ /g, '-'));
-    fs.copyFileSync(exeFilePath, newPath)
+    fs.copyFileSync(exeFilePath, newPath);
     return [newPath];
   }
 
   return [];
-}
+};

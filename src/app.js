@@ -9,7 +9,7 @@ import puppeteer from 'puppeteer-core';
 import { isRetryableError } from './retryable_error';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
-import * as Sentry from "@sentry/electron";
+import * as Sentry from '@sentry/electron';
 const windowStateKeeper = require('electron-window-state');
 
 Object.assign(console, log.functions);
@@ -21,8 +21,8 @@ export class AppMain {
     this.electronDownloadLogStore = new ElectronStore({ name: 'downloadLogs' });
     this.startDate = this.now();
     this.scraper = new Scraper(this.win);
-    this.listen()
-    this.init()
+    this.listen();
+    this.init();
   }
 
   async init() {
@@ -105,7 +105,7 @@ export class AppMain {
   }
 
   async validate() {
-    const access_token = await this.win.webContents.executeJavaScript(`window.localStorage.getItem('access_token')`);
+    const access_token = await this.win.webContents.executeJavaScript('window.localStorage.getItem("access_token")');
     // Logged out
     if (access_token === null) {
       store.dispatch('stop', 'Logged out');
@@ -127,8 +127,8 @@ export class AppMain {
         {
           headers: {
             'Authorization': `Bearer ${access_token}`,
-          }
-        }
+          },
+        },
       );
       accountNumber = response.data['account_number'];
       if (!accountNumber || accountNumber === '') {
@@ -157,7 +157,7 @@ export class AppMain {
       username: username,
       password: password,
       accountNumber: accountNumber,
-    }
+    };
   }
 
   async check() {
@@ -209,8 +209,8 @@ export class AppMain {
           {
             headers: {
               'Authorization': `Bearer ${validated['accessToken']}`,
-            }
-          }
+            },
+          },
         );
         if (response.data['inserted']) {
           insertedCount = response.data['inserted'];

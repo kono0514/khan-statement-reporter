@@ -51,4 +51,4 @@ function luxonDateTimeToRelative(dateTime, withSuffix = false) {
 
 export {
   luxonDateTimeToRelative,
-}
+};

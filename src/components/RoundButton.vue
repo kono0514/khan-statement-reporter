@@ -29,8 +29,8 @@ export default {
       }
       return 'text-gray-700 dark:text-gray-400';
     },
-  }
-}
+  },
+};
 </script>
 
 <style>

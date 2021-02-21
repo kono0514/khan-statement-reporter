@@ -80,15 +80,15 @@
 </template>
 
 <script>
-import AppStatus from '@/components/AppStatus.vue'
-import NavBar from '@/components/NavBar.vue'
-import TimeAgo from '@/components/TimeAgo.vue'
-import SupportLinks from '@/components/SupportLinks.vue'
+import AppStatus from '@/components/AppStatus.vue';
+import NavBar from '@/components/NavBar.vue';
+import TimeAgo from '@/components/TimeAgo.vue';
+import SupportLinks from '@/components/SupportLinks.vue';
 import constants from '@/constants';
-import { mapState } from 'vuex'
-import ElectronStore from 'electron-store'
-const { ipcRenderer, clipboard } = require('electron')
-const electronStore = new ElectronStore()
+import { mapState } from 'vuex';
+import ElectronStore from 'electron-store';
+const { ipcRenderer, clipboard } = require('electron');
+const electronStore = new ElectronStore();
 
 export default {
   name: 'Home',
@@ -101,7 +101,7 @@ export default {
   data() {
     return {
       copyTooltipText: 'Copy Log Path',
-    }
+    };
   },
   computed: {
     logs() {
@@ -139,10 +139,10 @@ export default {
   created() {
     ipcRenderer.send('validateNow');
     ipcRenderer.on('logout', () => {
-      electronStore.delete(constants.BANK_USERNAME_KEY)
-      electronStore.delete(constants.BANK_PASSWORD_KEY)
+      electronStore.delete(constants.BANK_USERNAME_KEY);
+      electronStore.delete(constants.BANK_PASSWORD_KEY);
       this.$auth.logout();
     });
-  }
-}
+  },
+};
 </script>

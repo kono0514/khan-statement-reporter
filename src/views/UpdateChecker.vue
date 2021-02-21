@@ -18,12 +18,12 @@ export default {
     return {
       status: 'Checking for update... Please wait',
       updateFinished: false,
-    }
+    };
   },
   methods: {
     restart() {
       ipcRenderer.send('restart');
-    }
+    },
   },
   created() {
     if (process.env.NODE_ENV === 'development' || process.platform !== 'win32') {
@@ -43,8 +43,8 @@ export default {
         this.updateFinished = true;
       }
     });
-  }
-}
+  },
+};
 </script>
 
 <style>

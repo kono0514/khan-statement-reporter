@@ -1,5 +1,5 @@
-import Echo from 'laravel-echo'
-import Pusher from 'pusher-js'
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
@@ -15,19 +15,17 @@ EchoPlugin.install = function(Vue, options = {}) {
         authorize: (socketId, callback) => {
           Vue.axios.post(`${process.env.VUE_APP_URL}/api/broadcasting/auth`, {
             socket_id: socketId,
-            channel_name: channel.name
+            channel_name: channel.name,
           }, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-            }
-          })
-          .then(response => {
+            },
+          }).then(response => {
             callback(false, response.data);
-          })
-          .catch(error => {
+          }).catch(error => {
             callback(true, error);
           });
-        }
+        },
       };
     },
   });

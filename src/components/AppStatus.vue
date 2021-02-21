@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
 
 export default {
   name: 'app-status',
@@ -31,25 +31,25 @@ export default {
         'bg-green-300': this.running,
         'bg-red-300': this.error !== null,
         'bg-blue-300': !this.running && this.error === null,
-      }
+      };
     },
     iconClass() {
       return {
         'text-green-600': this.running,
         'text-red-600': this.error !== null,
         'text-blue-600': !this.running && this.error === null,
-      }
+      };
     },
     textClass() {
       return {
         'text-green-800': this.running,
         'text-red-800': this.error !== null,
         'text-blue-800': !this.running && this.error === null,
-      }
+      };
     },
     ...mapState(['running', 'error']),
-  }
-}
+  },
+};
 </script>
 
 <style>
