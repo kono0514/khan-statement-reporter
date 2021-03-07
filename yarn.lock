@@ -11139,10 +11139,9 @@ vue@^2.6, vue@^2.6.11:
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.12.tgz#f5ebd4fa6bd2869403e29a896aed4904456c9123"
   integrity sha512-uhmLFETqPPNyuLLbsKz6ioJ4q7AZHzD8ZVFNATNyICSZouqP2Sz0rotWQC8UNBF6VGSCs5abnKJoStA6JbCbfg==
 
-vuex-electron@^1.0.3:
+vuex-electron@kono0514/vuex-electron:
   version "1.0.3"
-  resolved "https://registry.yarnpkg.com/vuex-electron/-/vuex-electron-1.0.3.tgz#c8ce0fd06ed9d3beb8881bce39bf76c9fcdc5611"
-  integrity sha512-fPv6nQa3yllKHy+8GT/xBMLw95slnLQRAV7Rddr1rNwc369vZvT6j9mQs7easwWgdk/Cnqqcq2Uay1SQE9KahQ==
+  resolved "https://codeload.github.com/kono0514/vuex-electron/tar.gz/749885af66b3b355a12de86fb6d293fc438cefbd"
   dependencies:
     deepmerge "^2.1.1"
     electron-store "^2.0.0"

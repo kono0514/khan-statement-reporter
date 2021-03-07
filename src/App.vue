@@ -6,10 +6,16 @@
 
 <script>
 import { mapState } from 'vuex';
+import { clearBankUsername, clearBankPassword } from '@/helpers/credentials';
 
 export default {
   computed: {
-    ...mapState(['darkModeEnabled']),
+    ...mapState({
+      darkModeEnabled: state => state.preferences.darkModeEnabled,
+    }),
+    authenticated() {
+      return this.$auth.check();
+    },
   },
   watch: {
     darkModeEnabled: {
@@ -21,6 +27,13 @@ export default {
           document.querySelector('html').classList.remove('dark');
         }
       },
+    },
+    authenticated(newValue) {
+      // Automatically logged out (token expired etc...)
+      if (!newValue) {
+        clearBankUsername();
+        clearBankPassword();
+      }
     },
   },
   created() {

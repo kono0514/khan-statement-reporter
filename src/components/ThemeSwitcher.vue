@@ -14,15 +14,19 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 
 export default {
   name: 'theme-switcher',
   computed: {
-    ...mapState(['darkModeEnabled']),
+    ...mapState({
+      darkModeEnabled: state => state.preferences.darkModeEnabled,
+    }),
   },
   methods: {
-    ...mapActions(['toggleDarkMode']),
+    ...mapMutations([
+      'toggleDarkMode',
+    ]),
   },
 };
 </script>

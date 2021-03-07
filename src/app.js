@@ -2,14 +2,14 @@
 import { ipcMain, app, BrowserWindow } from 'electron';
 import store from './store';
 import ElectronStore from 'electron-store';
-import constants from './constants';
 import axios from './axios';
 import { Scraper } from './scraper';
 import puppeteer from 'puppeteer-core';
 import { isRetryableError } from './retryable_error';
+import * as Sentry from '@sentry/electron';
+import { getBankUsername, getBankPassword } from './helpers/credentials';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
-import * as Sentry from '@sentry/electron';
 const windowStateKeeper = require('electron-window-state');
 
 Object.assign(console, log.functions);
@@ -73,12 +73,12 @@ export class AppMain {
     });
 
     store.watch(
-      (state) => state.running,
+      (state) => state.scraper.running,
       (newValue) => {
         if (newValue === true) {
           this.validate();
-          if (store.state.recoverMissedAtStart) {
-            this.startDate = this.now(store.state.recoverMissedDays * 24 * 60);
+          if (store.state.preferences.recoverMissedAtStart) {
+            this.startDate = this.now(store.state.preferences.recoverMissedDays * 24 * 60);
           } else {
             this.startDate = this.now(30);
           }
@@ -111,8 +111,8 @@ export class AppMain {
       return false;
     }
 
-    const username = this.electronStore.get(constants.BANK_USERNAME_KEY, '');
-    const password = this.electronStore.get(constants.BANK_PASSWORD_KEY, '');
+    const username = getBankUsername();
+    const password = getBankPassword();
     if (username === '' || password === '') {
       store.dispatch('stop', 'Интернет банкны нэр нууц үгээ тохируулна уу');
       return false;
@@ -160,7 +160,7 @@ export class AppMain {
   }
 
   async check() {
-    if (!store.state.running) return;
+    if (!store.state.scraper.running) return;
 
     const checkStartTime = (new Date()).toLocaleTimeString();
 
@@ -177,12 +177,12 @@ export class AppMain {
         this.startDate,
       );
       for (const statement of statements) {
-        if (!store.state.sentStatements.find(s => s.hash === statement.hash)) {
+        if (!store.state.scraper.sentStatements.find(s => s.hash === statement.hash)) {
           newDonations.push(statement);
         }
       }
       this.startDate = this.now();
-      store.dispatch('resetScraperFailCount');
+      store.commit('setScraperFailCount', 0);
     } catch (error) {
       console.error('Statement result error', error);
       if (error instanceof puppeteer.errors.TimeoutError || isRetryableError(error)) {
@@ -215,9 +215,9 @@ export class AppMain {
         if (response.data['inserted']) {
           insertedCount = response.data['inserted'];
         }
-        store.dispatch('appendStatements', newDonations);
+        store.commit('appendStatements', newDonations);
       }
-      store.dispatch('resetApiFailCount');
+      store.commit('setApiFailCount', 0);
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `New Donations = ${insertedCount}`});
     } catch (error) {
       console.error('Upload error', error);

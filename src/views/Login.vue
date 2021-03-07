@@ -31,7 +31,7 @@
         <t-alert variant="danger" :show="authError !== null" :dismissible="false">
           {{ authError }}
         </t-alert>
-        <t-button :disabled="loggingIn" @click="login" class="w-full justify-center" :class="{'opacity-25 pointer-events-none cursor-default': loggingIn}">Login</t-button>
+        <t-button :disabled="loggingIn" @click="doLogin" class="w-full justify-center" :class="{'opacity-25 pointer-events-none cursor-default': loggingIn}">Login</t-button>
       </form>
 
       <support-links class="flex justify-end space-x-2"></support-links>
@@ -42,10 +42,8 @@
 <script>
 import NavBar from '@/components/NavBar.vue';
 import SupportLinks from '@/components/SupportLinks.vue';
-import constants from '@/constants';
-import ElectronStore from 'electron-store';
 import { mapState, mapActions } from 'vuex';
-const electronStore = new ElectronStore();
+import { login } from '@/helpers/auth';
 
 export default {
   name: 'login',
@@ -62,7 +60,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(['rememberedEmail']),
+    ...mapState({
+      rememberedEmail: state => state.preferences.rememberedEmail,
+    }),
   },
   mounted() {
     if (this.email === '') {
@@ -72,18 +72,11 @@ export default {
     }
   },
   methods: {
-    async login() {
+    async doLogin() {
       this.authError = null;
       this.loggingIn = true;
       try {
-        await this.$auth.login({
-          data: {
-            email: this.email,
-            password: this.password,
-          },
-        });
-
-        this.rememberEmail(this.email);
+        await login(this.email, this.password);
         this.start();
       } catch (error) {
         this.authError =
@@ -93,15 +86,14 @@ export default {
         this.loggingIn = false;
       }
     },
-    ...mapActions(['start', 'rememberEmail']),
+    ...mapActions([
+      'start',
+    ]),
   },
   created() {
     if (this.rememberedEmail && this.rememberedEmail !== '') {
       this.email = this.rememberedEmail;
     }
-
-    electronStore.delete(constants.BANK_USERNAME_KEY);
-    electronStore.delete(constants.BANK_PASSWORD_KEY);
   },
 };
 </script>

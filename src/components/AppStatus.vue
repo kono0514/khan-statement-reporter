@@ -47,7 +47,10 @@ export default {
         'text-blue-800': !this.running && this.error === null,
       };
     },
-    ...mapState(['running', 'error']),
+    ...mapState({
+      running: state => state.scraper.running,
+      error: state => state.scraper.error,
+    }),
   },
 };
 </script>

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { luxonDateTimeToRelative } from '@/utils';
+import { luxonDateTimeToRelative } from '@/helpers/utils';
 
 export default {
   props: {

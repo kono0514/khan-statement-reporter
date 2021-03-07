@@ -84,11 +84,9 @@ import AppStatus from '@/components/AppStatus.vue';
 import NavBar from '@/components/NavBar.vue';
 import TimeAgo from '@/components/TimeAgo.vue';
 import SupportLinks from '@/components/SupportLinks.vue';
-import constants from '@/constants';
 import { mapState } from 'vuex';
-import ElectronStore from 'electron-store';
+import { logout } from '@/helpers/auth';
 const { ipcRenderer, clipboard } = require('electron');
-const electronStore = new ElectronStore();
 
 export default {
   name: 'Home',
@@ -105,9 +103,13 @@ export default {
   },
   computed: {
     logs() {
-      return this.$store.state.logs.slice(0).reverse().join('\n');
+      return this.$store.state.logs.logs.slice(0).reverse().join('\n');
     },
-    ...mapState(['running', 'error', 'lastLogTimestamp']),
+    ...mapState({
+      running: state => state.scraper.running,
+      error: state => state.scraper.error,
+      lastLogTimestamp: state => state.logs.lastLogTimestamp,
+    }),
     lastLogTimestampTooltip() {
       if (this.lastLogTimestamp) {
         return this.lastLogTimestamp.toFormat('yyyy/MM/dd HH:mm:ss');
@@ -120,7 +122,7 @@ export default {
       this.$store.dispatch('start');
     },
     stop() {
-      if (this.$store.state.running) {
+      if (this.$store.state.scraper.running) {
         this.$store.dispatch('stop');
       }
     },
@@ -139,9 +141,7 @@ export default {
   created() {
     ipcRenderer.send('validateNow');
     ipcRenderer.on('logout', () => {
-      electronStore.delete(constants.BANK_USERNAME_KEY);
-      electronStore.delete(constants.BANK_PASSWORD_KEY);
-      this.$auth.logout();
+      logout();
     });
   },
 };

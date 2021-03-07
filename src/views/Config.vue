@@ -78,10 +78,13 @@
 </template>
 
 <script>
-import constants from '@/constants';
-import { mapActions } from 'vuex';
-import ElectronStore from 'electron-store';
-const electronStore = new ElectronStore();
+import { mapMutations } from 'vuex';
+import {
+  getBankUsername,
+  getBankPassword,
+  setBankUsername,
+  setBankPassword,
+} from '@/helpers/credentials';
 
 export default {
   name: 'config',
@@ -99,26 +102,29 @@ export default {
         return;
       }
 
-      electronStore.set(constants.BANK_USERNAME_KEY, this.username.trim());
-      electronStore.set(constants.BANK_PASSWORD_KEY, this.password.trim());
+      setBankUsername(this.username.trim());
+      setBankPassword(this.password.trim());
 
-      if (this.nuhujBurtgehEnabled !== this.$store.state.recoverMissedAtStart) {
+      if (this.nuhujBurtgehEnabled !== this.$store.state.preferences.recoverMissedAtStart) {
         this.toggleRecoverMissedAtStart();
       }
-      this.modifyRecoverMissedDays(this.nuhujBurtgehDays);
+      this.setRecoverMissedDays(this.nuhujBurtgehDays);
 
       this.close();
     },
     close() {
       this.$router.go(-1);
     },
-    ...mapActions(['toggleRecoverMissedAtStart', 'modifyRecoverMissedDays']),
+    ...mapMutations([
+      'toggleRecoverMissedAtStart',
+      'setRecoverMissedDays',
+    ]),
   },
   created() {
-    this.username = electronStore.get(constants.BANK_USERNAME_KEY, '');
-    this.password = electronStore.get(constants.BANK_PASSWORD_KEY, '');
-    this.nuhujBurtgehEnabled = this.$store.state.recoverMissedAtStart;
-    this.nuhujBurtgehDays = this.$store.state.recoverMissedDays;
+    this.username = getBankUsername();
+    this.password = getBankPassword();
+    this.nuhujBurtgehEnabled = this.$store.state.preferences.recoverMissedAtStart;
+    this.nuhujBurtgehDays = this.$store.state.preferences.recoverMissedDays;
   },
 };
 </script>

@@ -15,7 +15,7 @@ export default {
   name: 'download-log',
   computed: {
     logs() {
-      return this.$store.state.logs.slice(0).reverse().join('\n');
+      return this.$store.state.logs.logs.slice(0).reverse().join('\n');
     },
   },
 };
