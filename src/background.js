@@ -6,13 +6,11 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import pie from 'puppeteer-in-electron';
 import { AppMain } from './app';
 import updater from './updater';
-import * as Sentry from '@sentry/electron';
+import { init as initSentry } from './helpers/sentry';
 const windowStateKeeper = require('electron-window-state');
 
 (async () => {
-  Sentry.init({
-    dsn: 'https://93e668898a53443d8025ff7f7b56f2d2@o465414.ingest.sentry.io/5478000',
-  });
+  initSentry();
 
   const isDevelopment = process.env.NODE_ENV !== 'production';
 

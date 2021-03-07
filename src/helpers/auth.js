@@ -17,6 +17,7 @@ const logout = () => {
   Vue.auth.logout();
   clearBankUsername();
   clearBankPassword();
+  store.commit('setCurrentUserEmail', null);
 };
 
 export {

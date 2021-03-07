@@ -6,7 +6,7 @@ import axios from './axios';
 import { Scraper } from './scraper';
 import puppeteer from 'puppeteer-core';
 import { isRetryableError } from './retryable_error';
-import * as Sentry from '@sentry/electron';
+import { reportError, reportRetryableError } from './helpers/sentry';
 import { getBankUsername, getBankPassword } from './helpers/credentials';
 const log = require('electron-log');
 const { DateTime } = require('luxon');
@@ -105,6 +105,7 @@ export class AppMain {
 
   async validate() {
     const access_token = await this.win.webContents.executeJavaScript('window.localStorage.getItem("access_token")');
+
     // Logged out
     if (access_token === null) {
       store.dispatch('stop', 'Logged out');
@@ -136,18 +137,25 @@ export class AppMain {
       }
     } catch (error) {
       console.error('Get account number error', error);
-      if (error.response && error.response.status === 401) {
-        this.win.webContents.send('logout');
-      } else if (error.response && error.response.status === 403) {
-        store.dispatch('stop', error.response.data.message || '403');
+      if (error.response) {
+        if (error.response.status === 401) {
+          store.dispatch('stop');
+          this.win.webContents.send('logout');
+        } else if (error.response.status === 403) {
+          store.dispatch('stop', `API: ${error.response.data.message || '403 Forbidden'}`);
+        } else {
+          store.dispatch('stop', 'API: Unexpected response');
+          reportError(error);
+        }
       } else if (isRetryableError(error)) {
         store.dispatch('appendErrorLog', { timestamp: (new Date()).toLocaleTimeString(), message: error.message });
         store.dispatch('incrementApiFailCount');
-        Sentry.captureException(error);
+        reportRetryableError(error);
       } else {
-        store.dispatch('stop', 'API failure');
-        Sentry.captureException(error);
+        store.dispatch('stop', 'Connection problem');
+        reportError(error);
       }
+
       return false;
     }
 
@@ -188,11 +196,11 @@ export class AppMain {
       if (error instanceof puppeteer.errors.TimeoutError || isRetryableError(error)) {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
         store.dispatch('incrementScraperFailCount');
-        Sentry.captureException(error);
+        reportRetryableError(error);
       } else {
         store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
-        store.dispatch('stop', `Khanbank: ${error}`);
-        Sentry.captureException(error);
+        store.dispatch('stop', `Khanbank алдаа: ${error.message}`);
+        reportError(error);
       }
       return;
     }
@@ -221,17 +229,23 @@ export class AppMain {
       store.dispatch('appendLog', { timestamp: checkStartTime, message: `New Donations = ${insertedCount}`});
     } catch (error) {
       console.error('Upload error', error);
-      if (error.response && error.response.status === 401) {
-        this.win.webContents.send('logout');
-        store.dispatch('stop');
-      } else if (error.response) {
-        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.response.data.message || 'API failure' });
+      if (error.response) {
+        if (error.response.status === 401) {
+          store.dispatch('stop');
+          this.win.webContents.send('logout');
+        } else if (error.response.status === 403) {
+          store.dispatch('stop', `API: ${error.response.data.message || '403 Forbidden'}`);
+        } else {
+          store.dispatch('stop', 'API: Unexpected response');
+          reportError(error);
+        }
+      } else if (isRetryableError(error)) {
+        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: error.message });
         store.dispatch('incrementApiFailCount');
-        Sentry.captureException(error);
+        reportRetryableError(error);
       } else {
-        store.dispatch('appendErrorLog', { timestamp: checkStartTime, message: 'API failure -99' });
-        store.dispatch('incrementApiFailCount');
-        Sentry.captureException(error);
+        store.dispatch('stop', 'Connection problem');
+        reportError(error);
       }
     }
   }

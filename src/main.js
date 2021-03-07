@@ -6,15 +6,13 @@ import store from './store';
 import './assets/tailwind.css';
 import VueTailwind from 'vue-tailwind';
 import settings from './settings.js';
-import * as Sentry from '@sentry/electron';
+import { init as initSentry } from './helpers/sentry';
 import VueTippy, { TippyComponent } from 'vue-tippy';
 import VEcho from './plugins/echo';
 import RoundButton from './components/RoundButton.vue';
 import App from './App.vue';
 
-Sentry.init({
-  dsn: 'https://93e668898a53443d8025ff7f7b56f2d2@o465414.ingest.sentry.io/5478000',
-});
+initSentry();
 
 Vue.config.productionTip = false;
 Vue.use(VueTailwind, settings);

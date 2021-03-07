@@ -24,6 +24,7 @@ export default new Vuex.Store({
         'preferences.recoverMissedDays',
         'preferences.darkModeEnabled',
         'preferences.rememberedEmail',
+        'preferences.currentUserEmail',
       ],
       filter: (mutation) => {
         return [
@@ -31,6 +32,7 @@ export default new Vuex.Store({
           'setRecoverMissedDays',
           'toggleDarkMode',
           'setRememberedEmail',
+          'setCurrentUserEmail',
         ].includes(mutation.type);
       },
       storage: {

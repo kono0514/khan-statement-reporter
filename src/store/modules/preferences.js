@@ -4,6 +4,7 @@ export default {
     rememberedEmail: '',
     recoverMissedAtStart: false,
     recoverMissedDays: 3,
+    currentUserEmail: null,
   },
 
   mutations: {
@@ -18,6 +19,9 @@ export default {
     },
     setRememberedEmail(state, payload) {
       state.rememberedEmail = payload;
+    },
+    setCurrentUserEmail(state, payload) {
+      state.currentUserEmail = payload;
     },
   },
 

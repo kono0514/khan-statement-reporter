@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 import { clearBankUsername, clearBankPassword } from '@/helpers/credentials';
 
 export default {
@@ -33,8 +33,18 @@ export default {
       if (!newValue) {
         clearBankUsername();
         clearBankPassword();
+        this.setCurrentUserEmail(null);
+      } else {
+        /// Authenticated, store/update the current user's email
+        /// for error reporting in both main & renderer processes
+        this.setCurrentUserEmail(this.$auth.user().email || '');
       }
     },
+  },
+  methods: {
+    ...mapMutations([
+      'setCurrentUserEmail',
+    ]),
   },
   created() {
     let shell = require('electron').shell;
