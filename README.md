@@ -1,6 +1,6 @@
 # khan_statement_reporter
 
-<https://streamlabs.kayaya.stream>
+<https://mntdonationalert.com>
 
 ## Project setup
 ```
