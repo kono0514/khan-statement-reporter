@@ -6,7 +6,6 @@
     </svg>
     <h1 class="dark:text-gray-300">{{ updateMessage }}</h1>
     <t-button v-show="successful" @click="restart()" class="mt-2">Restart</t-button>
-    <t-button v-show="errored" @click="proceed()" class="mt-2">Continue</t-button>
   </div>
 </template>
 
@@ -24,9 +23,6 @@ export default {
   computed: {
     successful() {
       return !this.updateInProgress && this.updateMessage.includes('Update downloaded');
-    },
-    errored() {
-      return !this.updateInProgress && this.updateMessage.includes('Update failed');
     },
   },
   methods: {
