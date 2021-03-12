@@ -9,12 +9,17 @@ yarn install
 
 ### Compiles and hot-reloads for development
 ```
-yarn serve
+yarn electron:serve
 ```
 
 ### Compiles and minifies for production
 ```
-yarn build
+yarn electron:build
+```
+
+### Release
+```
+SENTRY_AUTH_TOKEN=$SENTRY_TOKEN GH_TOKEN=$GITHUB_TOKEN yarn electron:build:publish
 ```
 
 ### Lints and fixes files
