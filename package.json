@@ -16,6 +16,7 @@
   "main": "background.js",
   "dependencies": {
     "@sentry/electron": "^2.0.1",
+    "@sentry/integrations": "^6.2.1",
     "@tailwindcss/forms": "^0.2.1",
     "@websanova/vue-auth": "^3.3.4",
     "axios": "^0.18.0",

@@ -6,13 +6,13 @@ import store from './store';
 import './assets/tailwind.css';
 import VueTailwind from 'vue-tailwind';
 import settings from './settings.js';
-import { init as initSentry } from './helpers/sentry';
+import { initRenderer as initSentry } from './helpers/sentry';
 import VueTippy, { TippyComponent } from 'vue-tippy';
 import VEcho from './plugins/echo';
 import RoundButton from './components/RoundButton.vue';
 import App from './App.vue';
 
-initSentry();
+initSentry(Vue);
 
 Vue.config.productionTip = false;
 Vue.use(VueTailwind, settings);

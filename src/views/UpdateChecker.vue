@@ -34,7 +34,7 @@ export default {
     },
   },
   created() {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.platform !== 'win32') {
       return this.proceed();
     }
 
