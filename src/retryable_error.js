@@ -1,6 +1,7 @@
 export {
   RetryableError,
   isRetryableError,
+  isNetworkError,
 };
 
 class RetryableError extends Error {
@@ -10,13 +11,13 @@ function isRetryableError(error) {
   if (error instanceof RetryableError) {
     return true;
   }
-  if (_isNetworkError(error)) {
+  if (isNetworkError(error)) {
     return true;
   }
   return false;
 }
 
-function _isNetworkError(error) {
+function isNetworkError(error) {
   if (!error.message) return false;
 
   return error.message.startsWith('getaddrinfo') ||

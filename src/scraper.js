@@ -7,7 +7,7 @@ import puppeteer from 'puppeteer-core';
 import { exception } from 'console';
 const log = require('electron-log');
 const { dialog } = require('electron');
-import { RetryableError } from './retryable_error';
+import { RetryableError, isNetworkError } from './retryable_error';
 import { rowsToStatements } from './scraper_utils';
 const { DateTime } = require('luxon');
 
@@ -51,6 +51,11 @@ export class Scraper {
       return statements;
     } catch (error) {
       console.error('Statement download re-use session error', error);
+      /// We should not consider the session as logged out when a network error occurs
+      /// So we throw a retryable error here and the caller can retry
+      if (isNetworkError(error)) {
+        throw error;
+      }
     }
 
     /// Logged out. Login again
@@ -131,6 +136,10 @@ export class Scraper {
       this._grabAttention('Captcha detected. Captcha-г бөглөөд нэвтэрнэ үү. Нэвтэрсний дараа "Start" дарж эхлүүлээрэй.');
       throw new Error('Captcha detected');
     } else if (warningError !== false) {
+      if (warningError === 'Холболт амжилтгүй боллоо') {
+        /// Login failed because the bank is experiencing problems. We allow retrying in this case.
+        throw new RetryableError('Холболт амжилтгүй боллоо');
+      }
       throw new Error(warningError);
     }
   }
