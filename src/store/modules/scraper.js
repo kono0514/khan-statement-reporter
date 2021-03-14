@@ -40,13 +40,13 @@ export default {
     },
     incrementScraperFailCount({ commit, state, dispatch }) {
       commit('setScraperFailCount', state.failedScraperTries + 1);
-      if (state.failedScraperTries > 3) {
+      if (state.failedScraperTries >= 5) {
         dispatch('stop', 'Max retries reached (Scraper)');
       }
     },
     incrementApiFailCount({ commit, state, dispatch }) {
       commit('setApiFailCount', state.failedApiTries + 1);
-      if (state.failedApiTries > 3) {
+      if (state.failedApiTries >= 5) {
         dispatch('stop', 'Max retries reached (API)');
       }
     },
